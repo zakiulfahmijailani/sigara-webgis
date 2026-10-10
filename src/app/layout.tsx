@@ -1,35 +1,9 @@
-import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
-import "./globals.css";
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  variable: "--font-plus-jakarta",
-});
-
+import type { Metadata } from 'next';
+import './globals.css';
 export const metadata: Metadata = {
-  title: "SIGARA WebGIS: Sistem Informasi Geografis Agentik Rujukan Akuntabel",
-  description:
-    "WebGIS SIGARA berbasis 19 dataset JKN resmi BPJS Kesehatan (2014-2018). Peta choropleth 34 provinsi, analisis faskes, akses, biaya klaim, diagnosis, dan kerangka GeoAI pemeriksaan rujukan.",
-  icons: {
-    icon: "/logo/Bang%20Jakes%20Maskot.png",
-    shortcut: "/logo/Bang%20Jakes%20Maskot.png",
-    apple: "/logo/Bang%20Jakes%20Maskot.png",
-  },
+  title: 'SIGARA — Agentic GeoAI untuk Rujukan Akuntabel',
+  description: 'Showcase pemeriksaan rujukan Kota Kupang: peta, SIGARA Index, bukti yang dapat ditelusuri, dan simulasi agen. Seluruh kasus merupakan data sintetis.',
 };
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="id">
-      <head>
-        <link rel="icon" href="/logo/Bang%20Jakes%20Maskot.png" type="image/png" />
-      </head>
-      <body className={`${plusJakartaSans.variable} font-sans antialiased`}>{children}</body>
-    </html>
-  );
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  return <html lang="id"><body>{children}</body></html>;
 }
-
