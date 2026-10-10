@@ -33,35 +33,68 @@ export default function Showcase() {
   const periodCases = useMemo(() => data?.cases.filter(r => month === 'all' || r.month === month) ?? [], [data, month]);
   const counts = useMemo(() => periodCases.reduce((s, r) => { s[assessments.get(r.id)!.category]++; return s; }, { red: 0, orange: 0, green: 0 }), [periodCases, assessments]);
 
-  // Representative cases: 14 unique FKTP–RS route records from Neon view or snapshot fallback
-  const uniqueCases = useMemo(() => {
-    if (!data?.cases) return [];
-    if (data.uniqueReferralIds && data.uniqueReferralIds.length > 0) {
-      const idSet = new Set(data.uniqueReferralIds);
-      return data.cases.filter(r => idSet.has(r.id));
-    }
-    // Fallback: 14 unique routes (first case per distinct FKTP–RS pair)
-    const seen = new Set<string>();
-    const res: Referral[] = [];
-    for (const r of data.cases) {
-      const routeKey = `${r.from}->${r.to}`;
-      if (!seen.has(routeKey)) {
-        seen.add(routeKey);
-        res.push(r);
-      }
-    }
-    return res;
-  }, [data]);
-
-  const periodUniqueCases = useMemo(() => uniqueCases.filter(r => month === 'all' || r.month === month), [uniqueCases, month]);
-
-  const filtered = useMemo(() => periodUniqueCases.filter(r => (filter === 'all' || assessments.get(r.id)?.category === filter) && `${r.id} ${r.from} ${r.to} ${r.service}`.toLowerCase().includes(search.toLowerCase())).sort((a, b) => {
+  // Filter cases from the complete periodCases dataset
+  const filtered = useMemo(() => periodCases.filter(r => (filter === 'all' || assessments.get(r.id)?.category === filter) && `${r.id} ${r.from} ${r.to} ${r.service}`.toLowerCase().includes(search.toLowerCase())).sort((a, b) => {
     const x = assessments.get(a.id)!, y = assessments.get(b.id)!;
     return categories.indexOf(x.category) - categories.indexOf(y.category) || (y.extra ?? -1) - (x.extra ?? -1) || a.id.localeCompare(b.id);
-  }), [periodUniqueCases, filter, search, assessments]);
+  }), [periodCases, filter, search, assessments]);
+
   // Selection always belongs to the current filter, including empty and searched states.
   const selected = filtered.find(r => r.id === selectedId) ?? filtered[0] ?? null;
   const assessment = selected ? assessments.get(selected.id)! : null;
+
+  // Group referral cases by geographic route (from -> to)
+  const routeGroups = useMemo(() => {
+    const map = new Map<string, { from: string; to: string; cases: Referral[]; category: Category; maxExtra: number }>();
+
+    for (const r of filtered) {
+      const key = `${r.from} -> ${r.to}`;
+      const a = assessments.get(r.id)!;
+      if (!map.has(key)) {
+        map.set(key, { from: r.from, to: r.to, cases: [], category: a.category, maxExtra: a.extra ?? -1 });
+      }
+      const g = map.get(key)!;
+      g.cases.push(r);
+      if (categories.indexOf(a.category) < categories.indexOf(g.category)) {
+        g.category = a.category;
+      }
+      if ((a.extra ?? -1) > g.maxExtra) {
+        g.maxExtra = a.extra ?? -1;
+      }
+    }
+
+    return Array.from(map.entries())
+      .map(([key, val]) => ({ key, ...val }))
+      .sort((a, b) => {
+        return categories.indexOf(a.category) - categories.indexOf(b.category) ||
+          b.cases.length - a.cases.length ||
+          b.maxExtra - a.maxExtra ||
+          a.key.localeCompare(b.key);
+      });
+  }, [filtered, assessments]);
+
+  // Keep track of which route groups are expanded
+  const [expandedRoutes, setExpandedRoutes] = useState<Record<string, boolean>>({});
+
+  // Auto-expand group of selected case or default all open when few groups
+  useEffect(() => {
+    if (selected) {
+      const groupKey = `${selected.from} -> ${selected.to}`;
+      setExpandedRoutes(prev => (prev[groupKey] ? prev : { ...prev, [groupKey]: true }));
+    }
+  }, [selected?.id, selected?.from, selected?.to]);
+
+  function toggleGroup(key: string, firstCaseId: string) {
+    setExpandedRoutes(prev => {
+      const nextOpen = !prev[key];
+      return { ...prev, [key]: nextOpen };
+    });
+    // Also select and highlight route on map
+    if (selected?.from !== firstCaseId.split(' ')[0]) {
+      select(firstCaseId);
+    }
+  }
+
   function changeFilter(value: Filter) { setFilter(value); setSearch(''); setSelectedId(null); setLimit(12); }
   function select(id: string) { setSelectedId(id); setTab('summary'); setRoutesLayer(true); setFocusRequest(n => n + 1); }
   function runSimulation() {
@@ -73,6 +106,13 @@ export default function Showcase() {
   if (!data) return <div className="boot-screen"><div className="brand-mark"><RouteIcon size={28} /></div><h1>SIGARA</h1><p>{error ? 'Data showcase belum dapat dimuat.' : 'Menyiapkan ruang pemeriksaan Kota Kupang…'}</p>{error ? <button className="primary-button" onClick={() => location.reload()}>Coba lagi</button> : <LoaderCircle className="spin" size={20} />}</div>;
   const batchCounts = data.cases.reduce((s, r) => { s[assessments.get(r.id)!.category]++; return s; }, { red: 0, orange: 0, green: 0 });
   const running = step >= 0;
+
+  // Selected route group referral count for map badge
+  const selectedRouteCaseCount = useMemo(() => {
+    if (!selected) return 0;
+    return filtered.filter(r => r.from === selected.from && r.to === selected.to).length;
+  }, [selected, filtered]);
+
   return <div className="sigara-app">
     <header className="app-header"><a href="/" className="brand" aria-label="SIGARA beranda"><div className="brand-mark"><RouteIcon size={24} strokeWidth={1.8} /></div><div><strong>SIGARA<span> / </span><small>GeoAI</small></strong><p>Rujukan akuntabel, berbasis bukti.</p></div></a><div className="header-context"><MapPinned size={15} /><span>Kota Kupang</span><span className="header-divider" /><span>Healthkathon 2026</span></div><div className="header-actions"><span className="demo-badge"><span />Demo showcase</span><button className="text-button" onClick={() => setDetail('about')}><Info size={16} /><span>Tentang demo</span></button></div></header>
     <main className="main-content">
@@ -83,11 +123,98 @@ export default function Showcase() {
       </section>
       <div className="monitor-strip"><div><span className={`monitor-dot ${running ? 'working' : ''}`} /><strong>{running ? `Simulasi: ${agents[step]?.name}` : completed ? 'Simulasi pemeriksaan selesai' : 'Ringkasan batch demo tersedia'}</strong><span className="monitor-meta">10 Okt 2026 · Data sintetis · Simulasi agen</span></div><button className="simulation-button" disabled={running} onClick={runSimulation}>{running ? <LoaderCircle size={14} className="spin" /> : <Play size={13} />} {running ? 'Memeriksa…' : 'Putar simulasi agen'}</button></div>
       <section className="workspace">
-        <aside className="case-panel" aria-label="Daftar kasus rujukan"><div className="panel-heading"><h2>Kasus rujukan (14 rute unik)</h2><span className="count-pill">{filtered.length}</span></div><div className="case-tools"><div className="search-field"><Search size={15} /><input aria-label="Cari kasus atau fasilitas" placeholder="Cari kasus atau fasilitas…" value={search} onChange={e => { setSearch(e.target.value); setLimit(12); }} />{search && <button aria-label="Hapus pencarian" onClick={() => setSearch('')}><X size={13} /></button>}</div><div className="active-filter"><FilterIcon size={12} /><span>{filter === 'all' ? 'Semua status' : labels[filter]}</span><small>↓ Selisih waktu</small></div></div>
-          <div className="case-list">{filtered.length ? filtered.slice(0, limit).map(r => { const a = assessments.get(r.id)!; return <button className={`case-card ${selected?.id === r.id ? 'selected' : ''}`} key={r.id} onClick={() => select(r.id)} aria-pressed={selected?.id === r.id}><div className="case-title"><span className={`status-dot ${a.category}`} /><strong>{r.id}</strong><ChevronRight size={14} /></div><div className="case-route">{r.from}<ArrowRight size={12} />{r.to}</div><p>{r.service}</p><div className="case-bottom"><span>{dateLabel(r.date)}</span><span className={a.category === 'red' ? 'extra-red' : ''}>{a.extra === null ? 'Perlu data' : `+${a.extra.toLocaleString('id-ID', { maximumFractionDigits: 1 })} mnt`}</span></div></button>; }) : <div className="empty-state"><Search size={24} /><strong>Tidak ada kasus</strong><p>Ubah kata pencarian, status, atau periode.</p></div>}{limit < filtered.length && <button className="load-more" onClick={() => setLimit(x => x + 12)}>Tampilkan 12 berikutnya</button>}</div>
+        <aside className="case-panel" aria-label="Daftar kasus rujukan">
+          <div className="panel-heading">
+            <h2>{filter === 'red' ? 'Kasus rujukan prioritas' : filter === 'orange' ? 'Kasus perlu data' : filter === 'green' ? 'Kasus tidak diprioritaskan' : 'Semua kasus rujukan'}</h2>
+            <span className="count-pill">{filtered.length} kasus · {routeGroups.length} rute</span>
+          </div>
+          <div className="case-tools">
+            <div className="search-field"><Search size={15} /><input aria-label="Cari kasus atau fasilitas" placeholder="Cari kasus atau fasilitas…" value={search} onChange={e => { setSearch(e.target.value); setLimit(12); }} />{search && <button aria-label="Hapus pencarian" onClick={() => setSearch('')}><X size={13} /></button>}</div>
+            <div className="active-filter"><FilterIcon size={12} /><span>{filter === 'all' ? 'Semua status' : labels[filter]}</span><small>{routeGroups.length} rute unik</small></div>
+          </div>
+          <div className="case-list">
+            {routeGroups.length ? routeGroups.map(group => {
+              const isRouteActive = selected?.from === group.from && selected?.to === group.to;
+              const isOpen = expandedRoutes[group.key] ?? isRouteActive;
+              return (
+                <div key={group.key} className={`route-group ${isRouteActive ? 'active-route' : ''}`}>
+                  <button
+                    type="button"
+                    className="route-group-header"
+                    onClick={() => toggleGroup(group.key, group.cases[0].id)}
+                    aria-expanded={isOpen}
+                  >
+                    <div className="route-group-info">
+                      <div className="route-group-title">
+                        <span className={`status-dot ${group.category}`} />
+                        <span>{group.from}</span>
+                        <ArrowRight size={11} />
+                        <span>{group.to}</span>
+                      </div>
+                      <div className="route-group-meta">
+                        <span className="route-group-badge">{group.cases.length} kasus</span>
+                        {group.maxExtra > 0 && <span>+{group.maxExtra.toFixed(1)} mnt maks</span>}
+                      </div>
+                    </div>
+                    <ChevronRight size={15} className={`route-group-chevron ${isOpen ? 'open' : ''}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="route-group-cases">
+                      {group.cases.map(r => {
+                        const a = assessments.get(r.id)!;
+                        const isSelected = selected?.id === r.id;
+                        return (
+                          <button
+                            key={r.id}
+                            className={`case-card ${isSelected ? 'selected' : ''}`}
+                            onClick={() => select(r.id)}
+                            aria-pressed={isSelected}
+                          >
+                            <div className="case-title">
+                              <span className={`status-dot ${a.category}`} />
+                              <strong>{r.id}</strong>
+                              <ChevronRight size={13} />
+                            </div>
+                            <p>{r.service}</p>
+                            <div className="case-bottom">
+                              <span>{dateLabel(r.date)}</span>
+                              <span className={a.category === 'red' ? 'extra-red' : ''}>
+                                {a.extra === null ? 'Perlu data' : `+${a.extra.toLocaleString('id-ID', { maximumFractionDigits: 1 })} mnt`}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }) : (
+              <div className="empty-state"><Search size={24} /><strong>Tidak ada kasus</strong><p>Ubah kata pencarian, status, atau periode.</p></div>
+            )}
+          </div>
           <div className="layer-controls"><h3><Layers3 size={14} />Layer peta</h3><label><input type="checkbox" checked={routesLayer} onChange={e => setRoutesLayer(e.target.checked)} /><span>Rute kasus & alternatif</span></label><label><input type="checkbox" checked={publicLayer} onChange={e => setPublicLayer(e.target.checked)} /><span>Fasilitas publik OSM</span><small>94</small></label></div>
         </aside>
-        <section className="map-panel" aria-label="Peta dan rute kasus"><KupangMap data={data} cases={filtered} selected={selected} assessment={assessment} publicLayer={publicLayer} routesLayer={routesLayer} focusRequest={focusRequest} onSelect={select} /><div className="map-bottom"><div><span className="eyebrow">CAKUPAN PEMERIKSAAN</span><p><strong>{filtered.length} kasus</strong> · {new Set(filtered.map(r => r.from)).size} FKTP asal · hanya dalam batas kota</p></div><span className="map-count">6 FKTP / 4 RS sintetis</span></div></section>
+        <section className="map-panel" aria-label="Peta dan rute kasus">
+          <KupangMap
+            data={data}
+            cases={filtered}
+            selected={selected}
+            assessment={assessment}
+            publicLayer={publicLayer}
+            routesLayer={routesLayer}
+            focusRequest={focusRequest}
+            routeCaseCount={selectedRouteCaseCount}
+            onSelect={select}
+          />
+          <div className="map-bottom">
+            <div>
+              <span className="eyebrow">CAKUPAN PEMERIKSAAN</span>
+              <p><strong>{filtered.length} kasus</strong> · {routeGroups.length} rute unik · {new Set(filtered.map(r => r.from)).size} FKTP asal</p>
+            </div>
+            <span className="map-count">6 FKTP / 4 RS sintetis</span>
+          </div>
+        </section>
         <aside className="analysis-panel" aria-label="Analisis kasus"><div className="panel-heading"><h2><Sparkles size={16} /> Analisis GeoAI</h2><span className="tiny-badge">SHOWCASE</span></div><div className="analysis-tabs" role="tablist" aria-label="Bagian analisis">{(['summary', 'evidence', 'agents'] as Tab[]).map((t, i) => <button role="tab" id={`tab-${t}`} aria-selected={tab === t} aria-controls={`panel-${t}`} className={tab === t ? 'active' : ''} key={t} onClick={() => setTab(t)}>{['Ringkasan', 'Bukti', 'Jejak agen'][i]}</button>)}</div>
           <div className="analysis-content">
             {tab === 'agents' ? <div role="tabpanel" id="panel-agents" aria-labelledby="tab-agents"><div className="agent-header"><Bot size={25} /><div><strong>Orchestrator SIGARA</strong><p>6 agen spesialis · simulasi alur</p></div></div><div className="agent-timeline">{agents.map((agent, i) => { const Icon = agent.icon, done = completed || (running && i < step), active = running && i === step; return <div className={`agent-step ${done ? 'done' : ''} ${active ? 'current' : ''}`} key={agent.name}><span className="agent-node">{done ? <Check size={14} /> : active ? <LoaderCircle size={14} className="spin" /> : <Icon size={14} />}</span><div><strong>{agent.name}</strong><p>{agent.action}</p><small>{done ? 'Selesai dalam simulasi' : active ? 'Sedang disimulasikan…' : 'Tahap simulasi'}</small></div></div>; })}</div>{completed && <div className="simulation-result" aria-live="polite"><CheckCircle2 size={17} /><div><strong>{formatNumber(data.cases.length)} kasus dirangkum</strong><p>{formatNumber(batchCounts.red)} prioritas · {formatNumber(batchCounts.orange)} perlu data · {formatNumber(batchCounts.green)} tidak diprioritaskan</p></div></div>}<p className="small-text">Putaran ini memperagakan pemeriksaan berkala. LLM dan RAG belum aktif; angka berasal dari data sintetis dan aturan yang dapat diperiksa.</p></div>

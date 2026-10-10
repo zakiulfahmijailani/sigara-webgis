@@ -6,7 +6,7 @@ import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import { Crosshair, Minus, Plus, MapPin, Layers } from 'lucide-react';
 import { assess, colors, type Assessment, type Referral, type ShowcaseData } from '@/lib/showcase';
 
-type Props = { data: ShowcaseData; cases: Referral[]; selected: Referral | null; assessment: Assessment | null; publicLayer: boolean; routesLayer: boolean; focusRequest: number; onSelect: (id: string) => void };
+type Props = { data: ShowcaseData; cases: Referral[]; selected: Referral | null; assessment: Assessment | null; publicLayer: boolean; routesLayer: boolean; focusRequest: number; routeCaseCount?: number; onSelect: (id: string) => void };
 const bounds: [number, number, number, number] = [123.51, -10.302, 123.70, -10.122];
 const collection = (features: Feature[]): FeatureCollection => ({ type: 'FeatureCollection', features });
 
@@ -109,10 +109,19 @@ export default function KupangMap(props: Props) {
     if (!map || !ready) return;
     Object.entries(layers).forEach(([id, geo]) => (map.getSource(id) as GeoJSONSource | undefined)?.setData(geo));
   }, [layers, ready]);
+  const prevRouteKey = useRef<string | null>(null);
   useEffect(() => {
-    if (mapRef.current && ready) focusCase(mapRef.current, current.current);
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const currentRouteKey = props.selected ? `${props.selected.from}->${props.selected.to}` : null;
+    const isNewRoute = currentRouteKey !== prevRouteKey.current;
+    prevRouteKey.current = currentRouteKey;
+
+    if (isNewRoute || props.focusRequest > 0) {
+      focusCase(map, current.current);
+    }
     setFallbackZoom(1);
-  }, [props.selected?.id, props.focusRequest, ready]);
+  }, [props.selected?.from, props.selected?.to, props.focusRequest, ready]);
   const projection = geoMercator().fitExtent([[24, 30], [Math.max(80, size.width - 24), Math.max(90, size.height - 55)]], props.data.boundary);
   const path = geoPath(projection);
   function zoom(delta: number) { if (mapRef.current) mapRef.current.zoomTo(mapRef.current.getZoom() + delta); else setFallbackZoom(x => Math.max(1, Math.min(2.5, x + delta * .25))); }
@@ -128,7 +137,7 @@ export default function KupangMap(props: Props) {
       {layers.points.features.map(f => { const g = f.geometry as GeoJSON.Point; const p = projection([g.coordinates[0], g.coordinates[1]])!; return <g key={f.properties?.id}><circle cx={p[0]} cy={p[1]} r={f.properties?.selected ? 7 : 5} fill={f.properties?.color} stroke="white" strokeWidth="2" /><text x={p[0] + 7} y={p[1] - 7} fontSize="10" fill="#254b40">{f.properties?.id}</text></g>; })}
     </g></svg>}
     <div className="map-location"><MapPin size={15} /><div><strong>Kota Kupang</strong><span>Nusa Tenggara Timur</span></div><span className="map-location-dot" /></div>
-    {props.selected && <div className="map-selected-case" role="status" aria-live="polite"><strong>{props.selected.id}</strong><span>Asal {props.selected.from} → Tujuan {props.selected.to}</span><small>{props.routesLayer ? 'Garis tebal: rute kasus terpilih' : 'Layer rute sedang disembunyikan'}</small></div>}
+    {props.selected && <div className="map-selected-case" role="status" aria-live="polite"><strong>{props.selected.id}</strong><span>Asal {props.selected.from} → Tujuan {props.selected.to}{props.routeCaseCount ? ` (${props.routeCaseCount} kasus rujukan)` : ''}</span><small>{props.routesLayer ? 'Garis tebal: rute kasus terpilih' : 'Layer rute sedang disembunyikan'}</small></div>}
     <div className="map-controls"><button aria-label="Perbesar peta" onClick={() => zoom(1)}><Plus size={17} /></button><button aria-label="Perkecil peta" onClick={() => zoom(-1)}><Minus size={17} /></button><button aria-label="Tampilkan seluruh Kota Kupang" onClick={() => { mapRef.current?.fitBounds(bounds, { padding: 32, duration: 500 }); setFallbackZoom(1); }}><Crosshair size={17} /></button></div>
     <div className="map-key"><span><i className="key-origin" />FKTP</span><span><i className="key-target" />RS sintetis</span><span><i className="key-line" />Rute tujuan</span><span><i className="key-alt" />Alternatif layak</span></div>
     <div className="map-source"><Layers size={11} />{mode}</div>
