@@ -1,10 +1,10 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { ArrowRight, Check, FileText, GitBranch, Info, MapPinned, ShieldCheck, X } from 'lucide-react';
-import { explanation, labels, minutes, reasonLabels, type Assessment, type Referral, type ShowcaseData } from '@/lib/showcase';
+import { ArrowRight, Check, ChevronRight, FileText, GitBranch, Info, MapPinned, ShieldCheck, X } from 'lucide-react';
+import { assess, dateLabel, explanation, labels, minutes, reasonLabels, type Assessment, type Referral, type ShowcaseData } from '@/lib/showcase';
 import BrandLogo from './BrandLogo';
 
-export default function CaseDetails({ data, referral: r, assessment: a, onClose }: { data: ShowcaseData; referral: Referral | null; assessment: Assessment | null; onClose: () => void }) {
+export default function CaseDetails({ data, referral: r, assessment: a, routeCases, onSelectCase, onClose }: { data: ShowcaseData; referral: Referral | null; assessment: Assessment | null; routeCases: Referral[]; onSelectCase: (id: string) => void; onClose: () => void }) {
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => { dialog.current?.showModal(); }, []);
   const rows = r && a ? [
@@ -19,6 +19,16 @@ export default function CaseDetails({ data, referral: r, assessment: a, onClose 
   return <dialog className="detail-dialog" ref={dialog} onClose={onClose} onClick={e => { if (e.target === e.currentTarget) onClose(); }} aria-labelledby="detail-title">
     <header className="dialog-header"><div><div className="eyebrow">TRANSPARANSI PEMERIKSAAN</div><h2 id="detail-title">{r ? `Analisis ${r.id}` : 'Tentang showcase SIGARA'}</h2></div><button className="icon-button" aria-label="Tutup analisis" onClick={onClose}><X size={20} /></button></header>
     <div className="dialog-body">
+      {r && <section className="route-cases-detail" aria-label="Kasus pada jalur terpilih">
+        <h3><MapPinned size={18} /> {r.from} → {r.to}</h3>
+        <p className="small-text">{routeCases.length} kasus sesuai filter dan periode aktif. Pilih kasus untuk menelusuri analisis dan buktinya.</p>
+        <div className="route-cases-list">{routeCases.map(item => {
+          const result = assess(item, data);
+          return <button type="button" key={item.id} className={`route-case-choice ${item.id === r.id ? 'selected' : ''}`} aria-pressed={item.id === r.id} onClick={() => onSelectCase(item.id)}>
+            <span><span className={`status-dot ${result.category}`} /><strong>{item.id}</strong></span><span>{item.service}</span><span>{dateLabel(item.date)}</span><span>{labels[result.category]}</span><ChevronRight size={14} />
+          </button>;
+        })}</div>
+      </section>}
       {!r && <div className="about-brand"><BrandLogo size={120} /><div><span className="eyebrow">BANG JAKES · SIGARA</span><h3>Pendamping pemeriksaan rujukan.</h3><p>Showcase Agentic GeoAI untuk rujukan akuntabel di Kota Kupang. Bang Jakes menjadi identitas visual ruang pemeriksaan dan simulasi agen.</p></div></div>}
       {r && a && <><div className={`analysis-summary ${a.category}`}><span className={`status-pill ${a.category}`}>{labels[a.category]}</span><p>{explanation(r, a)}</p><span className="small-text">{r.from} → {r.to} · {r.service} · {r.emergency ? 'Kondisi darurat tercatat dalam skenario' : 'Non-darurat dalam skenario'}</span></div>
       <h3><GitBranch size={18} /> Variabel utama &amp; aturan</h3>
