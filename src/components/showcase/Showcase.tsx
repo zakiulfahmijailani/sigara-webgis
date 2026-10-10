@@ -84,13 +84,20 @@ export default function Showcase() {
     }
   }, [selected?.id, selected?.from, selected?.to]);
 
+  // Selected route group referral count for map badge
+  const selectedRouteCaseCount = useMemo(() => {
+    if (!selected) return 0;
+    return filtered.filter(r => r.from === selected.from && r.to === selected.to).length;
+  }, [selected, filtered]);
+
   function toggleGroup(key: string, firstCaseId: string) {
     setExpandedRoutes(prev => {
       const nextOpen = !prev[key];
       return { ...prev, [key]: nextOpen };
     });
-    // Also select and highlight route on map
-    if (selected?.from !== firstCaseId.split(' ')[0]) {
+    // Select first case in group to highlight route on map if current selection is on a different route
+    const currentGroupKey = selected ? `${selected.from} -> ${selected.to}` : null;
+    if (currentGroupKey !== key) {
       select(firstCaseId);
     }
   }
@@ -106,12 +113,6 @@ export default function Showcase() {
   if (!data) return <div className="boot-screen"><div className="brand-mark"><RouteIcon size={28} /></div><h1>SIGARA</h1><p>{error ? 'Data showcase belum dapat dimuat.' : 'Menyiapkan ruang pemeriksaan Kota Kupang…'}</p>{error ? <button className="primary-button" onClick={() => location.reload()}>Coba lagi</button> : <LoaderCircle className="spin" size={20} />}</div>;
   const batchCounts = data.cases.reduce((s, r) => { s[assessments.get(r.id)!.category]++; return s; }, { red: 0, orange: 0, green: 0 });
   const running = step >= 0;
-
-  // Selected route group referral count for map badge
-  const selectedRouteCaseCount = useMemo(() => {
-    if (!selected) return 0;
-    return filtered.filter(r => r.from === selected.from && r.to === selected.to).length;
-  }, [selected, filtered]);
 
   return <div className="sigara-app">
     <header className="app-header"><a href="/" className="brand" aria-label="SIGARA beranda"><div className="brand-mark"><RouteIcon size={24} strokeWidth={1.8} /></div><div><strong>SIGARA<span> / </span><small>GeoAI</small></strong><p>Rujukan akuntabel, berbasis bukti.</p></div></a><div className="header-context"><MapPinned size={15} /><span>Kota Kupang</span><span className="header-divider" /><span>Healthkathon 2026</span></div><div className="header-actions"><span className="demo-badge"><span />Demo showcase</span><button className="text-button" onClick={() => setDetail('about')}><Info size={16} /><span>Tentang demo</span></button></div></header>
