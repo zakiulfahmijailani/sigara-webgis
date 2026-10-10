@@ -14,6 +14,7 @@ export type ShowcaseData = {
   boundary: Feature<MultiPolygon>; roads: MultiLineString;
   publicFacilities: { id: string; name: string; lon: number; lat: number }[];
   cases: Referral[];
+  uniqueReferralIds?: string[];
 };
 export type Assessment = {
   category: Category; status: string; targetMinutes: number | null; bestMinutes: number | null;

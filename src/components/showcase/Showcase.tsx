@@ -32,10 +32,33 @@ export default function Showcase() {
   const assessments = useMemo(() => new Map(data?.cases.map(r => [r.id, assess(r, data)]) ?? []), [data]);
   const periodCases = useMemo(() => data?.cases.filter(r => month === 'all' || r.month === month) ?? [], [data, month]);
   const counts = useMemo(() => periodCases.reduce((s, r) => { s[assessments.get(r.id)!.category]++; return s; }, { red: 0, orange: 0, green: 0 }), [periodCases, assessments]);
-  const filtered = useMemo(() => periodCases.filter(r => (filter === 'all' || assessments.get(r.id)?.category === filter) && `${r.id} ${r.from} ${r.to} ${r.service}`.toLowerCase().includes(search.toLowerCase())).sort((a, b) => {
+
+  // Representative cases: 14 unique FKTP–RS route records from Neon view or snapshot fallback
+  const uniqueCases = useMemo(() => {
+    if (!data?.cases) return [];
+    if (data.uniqueReferralIds && data.uniqueReferralIds.length > 0) {
+      const idSet = new Set(data.uniqueReferralIds);
+      return data.cases.filter(r => idSet.has(r.id));
+    }
+    // Fallback: 14 unique routes (first case per distinct FKTP–RS pair)
+    const seen = new Set<string>();
+    const res: Referral[] = [];
+    for (const r of data.cases) {
+      const routeKey = `${r.from}->${r.to}`;
+      if (!seen.has(routeKey)) {
+        seen.add(routeKey);
+        res.push(r);
+      }
+    }
+    return res;
+  }, [data]);
+
+  const periodUniqueCases = useMemo(() => uniqueCases.filter(r => month === 'all' || r.month === month), [uniqueCases, month]);
+
+  const filtered = useMemo(() => periodUniqueCases.filter(r => (filter === 'all' || assessments.get(r.id)?.category === filter) && `${r.id} ${r.from} ${r.to} ${r.service}`.toLowerCase().includes(search.toLowerCase())).sort((a, b) => {
     const x = assessments.get(a.id)!, y = assessments.get(b.id)!;
     return categories.indexOf(x.category) - categories.indexOf(y.category) || (y.extra ?? -1) - (x.extra ?? -1) || a.id.localeCompare(b.id);
-  }), [periodCases, filter, search, assessments]);
+  }), [periodUniqueCases, filter, search, assessments]);
   // Selection always belongs to the current filter, including empty and searched states.
   const selected = filtered.find(r => r.id === selectedId) ?? filtered[0] ?? null;
   const assessment = selected ? assessments.get(selected.id)! : null;
@@ -60,7 +83,7 @@ export default function Showcase() {
       </section>
       <div className="monitor-strip"><div><span className={`monitor-dot ${running ? 'working' : ''}`} /><strong>{running ? `Simulasi: ${agents[step]?.name}` : completed ? 'Simulasi pemeriksaan selesai' : 'Ringkasan batch demo tersedia'}</strong><span className="monitor-meta">10 Okt 2026 · Data sintetis · Simulasi agen</span></div><button className="simulation-button" disabled={running} onClick={runSimulation}>{running ? <LoaderCircle size={14} className="spin" /> : <Play size={13} />} {running ? 'Memeriksa…' : 'Putar simulasi agen'}</button></div>
       <section className="workspace">
-        <aside className="case-panel" aria-label="Daftar kasus rujukan"><div className="panel-heading"><h2>Kasus rujukan</h2><span className="count-pill">{filtered.length}</span></div><div className="case-tools"><div className="search-field"><Search size={15} /><input aria-label="Cari kasus atau fasilitas" placeholder="Cari kasus atau fasilitas…" value={search} onChange={e => { setSearch(e.target.value); setLimit(12); }} />{search && <button aria-label="Hapus pencarian" onClick={() => setSearch('')}><X size={13} /></button>}</div><div className="active-filter"><FilterIcon size={12} /><span>{filter === 'all' ? 'Semua status' : labels[filter]}</span><small>↓ Selisih waktu</small></div></div>
+        <aside className="case-panel" aria-label="Daftar kasus rujukan"><div className="panel-heading"><h2>Kasus rujukan (14 rute unik)</h2><span className="count-pill">{filtered.length}</span></div><div className="case-tools"><div className="search-field"><Search size={15} /><input aria-label="Cari kasus atau fasilitas" placeholder="Cari kasus atau fasilitas…" value={search} onChange={e => { setSearch(e.target.value); setLimit(12); }} />{search && <button aria-label="Hapus pencarian" onClick={() => setSearch('')}><X size={13} /></button>}</div><div className="active-filter"><FilterIcon size={12} /><span>{filter === 'all' ? 'Semua status' : labels[filter]}</span><small>↓ Selisih waktu</small></div></div>
           <div className="case-list">{filtered.length ? filtered.slice(0, limit).map(r => { const a = assessments.get(r.id)!; return <button className={`case-card ${selected?.id === r.id ? 'selected' : ''}`} key={r.id} onClick={() => select(r.id)} aria-pressed={selected?.id === r.id}><div className="case-title"><span className={`status-dot ${a.category}`} /><strong>{r.id}</strong><ChevronRight size={14} /></div><div className="case-route">{r.from}<ArrowRight size={12} />{r.to}</div><p>{r.service}</p><div className="case-bottom"><span>{dateLabel(r.date)}</span><span className={a.category === 'red' ? 'extra-red' : ''}>{a.extra === null ? 'Perlu data' : `+${a.extra.toLocaleString('id-ID', { maximumFractionDigits: 1 })} mnt`}</span></div></button>; }) : <div className="empty-state"><Search size={24} /><strong>Tidak ada kasus</strong><p>Ubah kata pencarian, status, atau periode.</p></div>}{limit < filtered.length && <button className="load-more" onClick={() => setLimit(x => x + 12)}>Tampilkan 12 berikutnya</button>}</div>
           <div className="layer-controls"><h3><Layers3 size={14} />Layer peta</h3><label><input type="checkbox" checked={routesLayer} onChange={e => setRoutesLayer(e.target.checked)} /><span>Rute kasus & alternatif</span></label><label><input type="checkbox" checked={publicLayer} onChange={e => setPublicLayer(e.target.checked)} /><span>Fasilitas publik OSM</span><small>94</small></label></div>
         </aside>

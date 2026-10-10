@@ -50,3 +50,23 @@ test('references and geometry are restricted to the city dataset', () => {
   assert.equal(data.routes.length, 24);
   data.routes.forEach(r => { assert.ok(r.geometry?.coordinates.length! > 1); assert.ok(r.minutes! > 0); });
 });
+test('14 unique route representative cases are distinct and map to valid Dijkstra geometry', () => {
+  const seen = new Set<string>();
+  const representativeCases: typeof data.cases = [];
+  for (const r of data.cases) {
+    const routeKey = `${r.from}->${r.to}`;
+    if (!seen.has(routeKey)) {
+      seen.add(routeKey);
+      representativeCases.push(r);
+    }
+  }
+  assert.equal(representativeCases.length, 14);
+  assert.equal(seen.size, 14);
+  const routePairs = representativeCases.map(r => `${r.from}->${r.to}`);
+  assert.equal(new Set(routePairs).size, 14);
+  for (const r of representativeCases) {
+    const route = data.routes.find(x => x.from === r.from && x.to === r.to);
+    assert.ok(route, `Missing route for ${r.from}->${r.to}`);
+    assert.ok(route.geometry && route.geometry.coordinates.length > 1, `Invalid geometry for ${r.from}->${r.to}`);
+  }
+});
