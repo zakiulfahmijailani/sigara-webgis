@@ -6,9 +6,18 @@ import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import { Crosshair, Minus, Plus, MapPin, Layers } from 'lucide-react';
 import { assess, colors, type Assessment, type Referral, type ShowcaseData } from '@/lib/showcase';
 
-type Props = { data: ShowcaseData; cases: Referral[]; selected: Referral | null; assessment: Assessment | null; publicLayer: boolean; routesLayer: boolean; onSelect: (id: string) => void };
+type Props = { data: ShowcaseData; cases: Referral[]; selected: Referral | null; assessment: Assessment | null; publicLayer: boolean; routesLayer: boolean; focusRequest: number; onSelect: (id: string) => void };
 const bounds: [number, number, number, number] = [123.51, -10.302, 123.70, -10.122];
 const collection = (features: Feature[]): FeatureCollection => ({ type: 'FeatureCollection', features });
+
+function focusCase(map: LibreMap, p: Props, duration = 650) {
+  const route = p.data.routes.find(r => r.from === p.selected?.from && r.to === p.selected?.to);
+  if (!route?.geometry?.coordinates.length) return;
+  const extent = new maplibregl.LngLatBounds();
+  route.geometry.coordinates.forEach(c => extent.extend([c[0], c[1]]));
+  p.data.facilities.filter(f => f.id === p.selected?.from || f.id === p.selected?.to).forEach(f => extent.extend([f.lon, f.lat]));
+  map.fitBounds(extent, { padding: { top: 135, bottom: 80, left: 45, right: 45 }, maxZoom: 14, duration });
+}
 
 function overlays(p: Props) {
   const pairs = new Map<string, { r: Referral; n: number }>();
@@ -31,7 +40,11 @@ function overlays(p: Props) {
     return { type: 'Feature', geometry: { type: 'Point', coordinates: [f.lon, f.lat] }, properties: { id: f.id, kind: f.kind, count: related.length, caseId: related[0]?.id ?? '', selected, color: related.length ? colors[category] : '#aebdb8' } };
   });
   const publicPoints: Feature[] = p.publicLayer ? p.data.publicFacilities.map(f => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [f.lon, f.lat] }, properties: { name: f.name } })) : [];
-  return { lines: collection(lines), alt: collection(alt), points: collection(points), publicPoints: collection(publicPoints) };
+  // The selected route has its own feature: multiple cases can share a pair
+  // but have different statuses, so the aggregated feature cannot identify it.
+  const selectedRoute = p.data.routes.find(r => r.from === p.selected?.from && r.to === p.selected?.to);
+  const selected: Feature[] = p.routesLayer && p.selected && selectedRoute?.geometry ? [{ type: 'Feature', geometry: selectedRoute.geometry, properties: { caseId: p.selected.id, color: colors[p.assessment!.category] } }] : [];
+  return { lines: collection(lines), selected: collection(selected), alt: collection(alt), points: collection(points), publicPoints: collection(publicPoints) };
 }
 
 export default function KupangMap(props: Props) {
@@ -62,22 +75,23 @@ export default function KupangMap(props: Props) {
         map.addLayer({ id: 'city-tint', type: 'fill', source: 'city', paint: { 'fill-color': '#c6e6db', 'fill-opacity': .12 } });
         map.addLayer({ id: 'city-outline', type: 'line', source: 'city', paint: { 'line-color': '#537e70', 'line-width': 1.6, 'line-dasharray': [4, 3] } });
         map.addLayer({ id: 'public-points', type: 'circle', source: 'publicPoints', paint: { 'circle-color': '#596b82', 'circle-radius': 3, 'circle-stroke-color': '#fff', 'circle-stroke-width': 1 } });
-        map.addLayer({ id: 'routes-all', type: 'line', source: 'lines', paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': .45 } });
+        map.addLayer({ id: 'routes-all', type: 'line', source: 'lines', paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': .16 } });
         map.addLayer({ id: 'alternatives', type: 'line', source: 'alt', paint: { 'line-color': '#4485b4', 'line-width': 3, 'line-dasharray': [3, 2] } });
-        map.addLayer({ id: 'selected-route', type: 'line', source: 'lines', filter: ['==', ['get', 'selected'], true], paint: { 'line-color': ['get', 'color'], 'line-width': 4.5 } });
+        map.addLayer({ id: 'selected-route-outline', type: 'line', source: 'selected', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#fff', 'line-width': 9 } });
+        map.addLayer({ id: 'selected-route', type: 'line', source: 'selected', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 5.5 } });
         map.addLayer({ id: 'facility-halo', type: 'circle', source: 'points', filter: ['==', ['get', 'selected'], true], paint: { 'circle-radius': 14, 'circle-color': ['get', 'color'], 'circle-opacity': .15 } });
         map.addLayer({ id: 'facilities', type: 'circle', source: 'points', paint: { 'circle-radius': ['case', ['==', ['get', 'kind'], 'RS'], 7, 5], 'circle-color': ['get', 'color'], 'circle-stroke-color': '#fff', 'circle-stroke-width': 2 } });
         // Default MapLibre glyphs are available only with the remote style.
         if (map.getStyle().glyphs) map.addLayer({ id: 'facility-labels', type: 'symbol', source: 'points', layout: { 'text-field': ['get', 'id'], 'text-font': ['Noto Sans Regular'], 'text-size': 11, 'text-offset': [0, 1.6], 'text-allow-overlap': false }, paint: { 'text-color': '#284c42', 'text-halo-color': '#fff', 'text-halo-width': 1.5 } });
       }
       setReady(true);
+      focusCase(map, current.current, 0);
     }
     try {
       map = new maplibregl.Map({ container: host.current, style: localStyle, center: [123.611, -10.193], zoom: 11.4, maxBounds: [123.45, -10.36, 123.77, -10.06], minZoom: 10, maxZoom: 17, attributionControl: false });
       mapRef.current = map;
       map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a> · GADM 4.1' }), 'bottom-right');
       map.on('style.load', sync);
-      map.on('load', () => map?.fitBounds(bounds, { padding: 32, duration: 0 }));
       map.on('click', 'facilities', e => { const id = e.features?.[0]?.properties?.caseId; if (id) current.current.onSelect(id); });
       map.on('click', 'routes-all', e => { const id = e.features?.[0]?.properties?.caseId; if (id) current.current.onSelect(id); });
       map.on('mouseenter', 'facilities', () => { if (map) map.getCanvas().style.cursor = 'pointer'; });
@@ -95,6 +109,10 @@ export default function KupangMap(props: Props) {
     if (!map || !ready) return;
     Object.entries(layers).forEach(([id, geo]) => (map.getSource(id) as GeoJSONSource | undefined)?.setData(geo));
   }, [layers, ready]);
+  useEffect(() => {
+    if (mapRef.current && ready) focusCase(mapRef.current, current.current);
+    setFallbackZoom(1);
+  }, [props.selected?.id, props.focusRequest, ready]);
   const projection = geoMercator().fitExtent([[24, 30], [Math.max(80, size.width - 24), Math.max(90, size.height - 55)]], props.data.boundary);
   const path = geoPath(projection);
   function zoom(delta: number) { if (mapRef.current) mapRef.current.zoomTo(mapRef.current.getZoom() + delta); else setFallbackZoom(x => Math.max(1, Math.min(2.5, x + delta * .25))); }
@@ -105,10 +123,12 @@ export default function KupangMap(props: Props) {
       <path d={path(props.data.roads) ?? ''} stroke="#c9d1c8" fill="none" strokeWidth="1" />
       {layers.lines.features.map((f, i) => <path key={`r${i}`} d={path(f.geometry) ?? ''} fill="none" stroke={f.properties?.color} strokeWidth={f.properties?.selected ? 4 : 2} opacity={f.properties?.selected ? 1 : .4} />)}
       {layers.alt.features.map((f, i) => <path key={`a${i}`} d={path(f.geometry) ?? ''} fill="none" stroke="#4485b4" strokeWidth="2" strokeDasharray="5 4" />)}
+      {layers.selected.features.map(f => <path key={f.properties?.caseId} d={path(f.geometry) ?? ''} fill="none" stroke={f.properties?.color} strokeWidth="5" />)}
       {props.publicLayer && props.data.publicFacilities.map(f => { const p = projection([f.lon, f.lat])!; return <circle key={f.id} cx={p[0]} cy={p[1]} r="2" fill="#657286" />; })}
       {layers.points.features.map(f => { const g = f.geometry as GeoJSON.Point; const p = projection([g.coordinates[0], g.coordinates[1]])!; return <g key={f.properties?.id}><circle cx={p[0]} cy={p[1]} r={f.properties?.selected ? 7 : 5} fill={f.properties?.color} stroke="white" strokeWidth="2" /><text x={p[0] + 7} y={p[1] - 7} fontSize="10" fill="#254b40">{f.properties?.id}</text></g>; })}
     </g></svg>}
     <div className="map-location"><MapPin size={15} /><div><strong>Kota Kupang</strong><span>Nusa Tenggara Timur</span></div><span className="map-location-dot" /></div>
+    {props.selected && <div className="map-selected-case" role="status" aria-live="polite"><strong>{props.selected.id}</strong><span>Asal {props.selected.from} → Tujuan {props.selected.to}</span><small>{props.routesLayer ? 'Garis tebal: rute kasus terpilih' : 'Layer rute sedang disembunyikan'}</small></div>}
     <div className="map-controls"><button aria-label="Perbesar peta" onClick={() => zoom(1)}><Plus size={17} /></button><button aria-label="Perkecil peta" onClick={() => zoom(-1)}><Minus size={17} /></button><button aria-label="Tampilkan seluruh Kota Kupang" onClick={() => { mapRef.current?.fitBounds(bounds, { padding: 32, duration: 500 }); setFallbackZoom(1); }}><Crosshair size={17} /></button></div>
     <div className="map-key"><span><i className="key-origin" />FKTP</span><span><i className="key-target" />RS sintetis</span><span><i className="key-line" />Rute tujuan</span><span><i className="key-alt" />Alternatif layak</span></div>
     <div className="map-source"><Layers size={11} />{mode}</div>
