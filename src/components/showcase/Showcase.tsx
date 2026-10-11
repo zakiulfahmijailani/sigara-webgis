@@ -131,6 +131,7 @@ export default function Showcase() {
             focusRequest={focusRequest}
             routeCaseCount={selectedRouteCaseCount}
             onSelect={select}
+            onShowPublic={() => setPublicLayer(true)}
           />
           <div className="map-bottom">
             <div>

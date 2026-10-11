@@ -3,6 +3,22 @@
 @tailwind components;
 @tailwind utilities;
 
+.sigara-facility-popup .maplibregl-popup-content{padding:18px 16px 14px;border-radius:12px;box-shadow:0 5px 28px #203e3533}
+.sigara-facility-popup .maplibregl-popup-close-button{font-size:22px;line-height:1;padding:5px 8px;color:#536e61}
+.facility-popup{max-height:min(var(--facility-popup-height,400px),65dvh);overflow-y:auto;scrollbar-width:thin;color:#264b3b;font-family:var(--font-jakarta),Arial,sans-serif}
+.map-canvas:has(.sigara-facility-popup){z-index:7}.map-controls{z-index:6}
+.facility-popup-source{font-size:8px;letter-spacing:1px;color:#7a9181}.facility-popup h3{font-size:17px;line-height:1.4;margin:7px 18px 7px 0;overflow-wrap:anywhere}
+.facility-popup-role{font-size:11px;color:#247258;margin-bottom:12px;font-weight:600}.facility-popup dl{margin:12px 0}.facility-popup dl>div{padding:6px 0;border-bottom:1px solid #edf1e9}
+.facility-popup dt{font-size:9px;color:#809080}.facility-popup dd{margin:3px 0 0;font-size:11px;line-height:1.6}
+.facility-popup-services strong,.facility-popup-nearby>strong{font-size:10px}.facility-popup-services p,.facility-popup-note{font-size:9px;line-height:1.7;margin:6px 0;color:#788b7c}
+.facility-popup-link{display:inline-block;font-size:10px;color:#28755e;margin:5px 0}
+.facility-popup-nearby{margin-top:12px;border-top:1px solid #e6ece0;padding-top:11px}.facility-popup-nearby>span{display:block;font-size:8px;color:#879585;margin:5px 0}
+.facility-popup-nearby button{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:8px 0;border-bottom:1px solid #edf1e8;font-size:10px;color:#466953}
+.facility-popup-nearby button:hover{color:#147b57;background:#f5f8f2}.facility-popup-nearby button small{font-size:8px;white-space:nowrap}.facility-popup-nearby>p{font-size:9px;line-height:1.6;color:#81917f}
+.interactive-fallback g[role=button]{pointer-events:auto;cursor:pointer}.interactive-fallback g[role=button]:focus{outline:2px solid #247258}
+.fallback-facility-popup{position:absolute;z-index:8;bottom:65px;left:16px;width:min(300px,calc(100% - 32px));padding:18px 16px;background:white;border-radius:12px;box-shadow:0 5px 28px #203e3533}
+.fallback-popup-close{position:absolute;top:4px;right:8px;font-size:24px;color:#587663}
+
 .unique-route-card{display:block;width:100%;padding:15px 11px;margin:4px 0 8px;text-align:left;border:1px solid #e4e9e3;border-radius:9px;background:#fff}
 .unique-route-card:hover{background:#f8faf6;border-color:#b8cebe}.unique-route-card.selected{background:#eff6ee;border-color:#8eaf9a}
 .route-card-title{display:flex;align-items:center;gap:6px;font-size:10px}.route-card-title>svg:last-child{margin-left:auto;color:#819487}

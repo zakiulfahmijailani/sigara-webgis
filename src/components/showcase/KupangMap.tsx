@@ -2,11 +2,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl, { GeoJSONSource, Map as LibreMap, StyleSpecification } from 'maplibre-gl';
 import { geoMercator, geoPath } from 'd3-geo';
+import { createPortal } from 'react-dom';
+import FacilityPopup, { type MapPoint } from './FacilityPopup';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import { Crosshair, Minus, Plus, MapPin, Layers } from 'lucide-react';
 import { assess, colors, type Assessment, type Referral, type ShowcaseData } from '@/lib/showcase';
 
-type Props = { data: ShowcaseData; cases: Referral[]; selected: Referral | null; assessment: Assessment | null; publicLayer: boolean; routesLayer: boolean; focusRequest: number; routeCaseCount?: number; onSelect: (id: string) => void };
+type Props = { data: ShowcaseData; cases: Referral[]; selected: Referral | null; assessment: Assessment | null; publicLayer: boolean; routesLayer: boolean; focusRequest: number; routeCaseCount?: number; onSelect: (id: string) => void; onShowPublic: () => void };
 const bounds: [number, number, number, number] = [123.51, -10.302, 123.70, -10.122];
 const collection = (features: Feature[]): FeatureCollection => ({ type: 'FeatureCollection', features });
 
@@ -39,7 +41,7 @@ function overlays(p: Props) {
     const category = priority.includes('red') ? 'red' : priority.includes('orange') ? 'orange' : 'green';
     return { type: 'Feature', geometry: { type: 'Point', coordinates: [f.lon, f.lat] }, properties: { id: f.id, kind: f.kind, count: related.length, caseId: related[0]?.id ?? '', selected, color: related.length ? colors[category] : '#aebdb8' } };
   });
-  const publicPoints: Feature[] = p.publicLayer ? p.data.publicFacilities.map(f => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [f.lon, f.lat] }, properties: { name: f.name } })) : [];
+  const publicPoints: Feature[] = p.publicLayer ? p.data.publicFacilities.map(f => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [f.lon, f.lat] }, properties: { id: f.id, name: f.name } })) : [];
   // The selected route has its own feature: multiple cases can share a pair
   // but have different statuses, so the aggregated feature cannot identify it.
   const selectedRoute = p.data.routes.find(r => r.from === p.selected?.from && r.to === p.selected?.to);
@@ -53,6 +55,45 @@ export default function KupangMap(props: Props) {
   const [ready, setReady] = useState(false), [mode, setMode] = useState('Peta lokal'), [size, setSize] = useState({ width: 600, height: 550 });
   const layers = useMemo(() => overlays(props), [props]);
   const [fallbackZoom, setFallbackZoom] = useState(1);
+  const [activePoint, setActivePoint] = useState<MapPoint | null>(null);
+  const [popupHost, setPopupHost] = useState<HTMLDivElement | null>(null);
+  function openPoint(point: MapPoint) {
+    if (point.kind === 'public') current.current.onShowPublic();
+    const facility = current.current.data.publicFacilities.find(f => f.id === point.id);
+    if (point.kind === 'public' && facility) mapRef.current?.easeTo({ center: [facility.lon, facility.lat], duration: 350 });
+    setActivePoint(point);
+  }
+  useEffect(() => { setActivePoint(null); }, [props.selected?.id, props.focusRequest]);
+  useEffect(() => { if (!props.publicLayer && activePoint?.kind === 'public') setActivePoint(null); }, [props.publicLayer, activePoint?.kind]);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !activePoint) return;
+    const facility = activePoint.kind === 'synthetic' ? props.data.facilities.find(f => f.id === activePoint.id) : props.data.publicFacilities.find(f => f.id === activePoint.id);
+    if (!facility) return;
+    const content = document.createElement('div');
+    const popup = new maplibregl.Popup({ closeOnClick: false, maxWidth: '300px', offset: 14, className: 'sigara-facility-popup' })
+      .setLngLat([facility.lon, facility.lat]).setDOMContent(content).addTo(map);
+    popup.getElement().setAttribute('role', 'dialog');
+    popup.getElement().setAttribute('aria-label', 'Informasi titik fasilitas');
+    popup.getElement().querySelector('button')?.setAttribute('aria-label', 'Tutup informasi fasilitas');
+    // Portal content arrives after Popup construction: recalculate its anchor and
+    // limit its height to the available side of the marker, including after pans.
+    const update = () => {
+      const pixel = map.project([facility.lon, facility.lat]);
+      const available = Math.max(pixel.y, map.getContainer().clientHeight - pixel.y) - 80;
+      content.style.setProperty('--facility-popup-height', `${Math.max(100, Math.min(400, available))}px`);
+      popup.setLngLat([facility.lon, facility.lat]);
+    };
+    const resize = new ResizeObserver(update);
+    resize.observe(content);
+    map.on('move', update);
+    const close = () => setActivePoint(null);
+    const escape = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    popup.on('close', close);
+    document.addEventListener('keydown', escape);
+    setPopupHost(content);
+    return () => { resize.disconnect(); map.off('move', update); popup.off('close', close); popup.remove(); document.removeEventListener('keydown', escape); setPopupHost(null); };
+  }, [activePoint, ready, props.data]);
   useEffect(() => {
     if (!host.current) return;
     const observer = new ResizeObserver(entries => { const { width, height } = entries[0].contentRect; setSize({ width, height }); mapRef.current?.resize(); });
@@ -92,10 +133,32 @@ export default function KupangMap(props: Props) {
       mapRef.current = map;
       map.addControl(new maplibregl.AttributionControl({ compact: true, customAttribution: '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a> · GADM 4.1' }), 'bottom-right');
       map.on('style.load', sync);
-      map.on('click', 'facilities', e => { const id = e.features?.[0]?.properties?.caseId; if (id) current.current.onSelect(id); });
-      map.on('click', 'routes-all', e => { const id = e.features?.[0]?.properties?.caseId; if (id) current.current.onSelect(id); });
-      map.on('mouseenter', 'facilities', () => { if (map) map.getCanvas().style.cursor = 'pointer'; });
-      map.on('mouseleave', 'facilities', () => { if (map) map.getCanvas().style.cursor = ''; });
+      // Resolve point hits before routes, with a generous target for small public markers.
+      map.on('click', e => {
+        if (!map) return;
+        const area: [[number, number], [number, number]] = [[e.point.x - 9, e.point.y - 9], [e.point.x + 9, e.point.y + 9]];
+        const pointLayers = ['facilities', 'public-points'].filter(id => map!.getLayer(id));
+        const hits = map.queryRenderedFeatures(area, { layers: pointLayers }).filter(f => f.geometry.type === 'Point');
+        hits.sort((a, b) => {
+          const pa = map!.project((a.geometry as GeoJSON.Point).coordinates as [number, number]);
+          const pb = map!.project((b.geometry as GeoJSON.Point).coordinates as [number, number]);
+          return Math.hypot(pa.x - e.point.x, pa.y - e.point.y) - Math.hypot(pb.x - e.point.x, pb.y - e.point.y);
+        });
+        if (hits[0]?.properties?.id) {
+          setActivePoint({ kind: hits[0].layer.id === 'public-points' ? 'public' : 'synthetic', id: String(hits[0].properties.id) });
+          return;
+        }
+        const routeLayers = ['selected-route', 'routes-all'].filter(id => map!.getLayer(id));
+        setActivePoint(null);
+        const id = map.queryRenderedFeatures(e.point, { layers: routeLayers })[0]?.properties?.caseId;
+        if (id) current.current.onSelect(id);
+      });
+      map.on('mousemove', e => {
+        if (!map) return;
+        const pointLayers = ['facilities', 'public-points', 'selected-route', 'routes-all'].filter(id => map!.getLayer(id));
+        map.getCanvas().style.cursor = map.queryRenderedFeatures([[e.point.x - 7, e.point.y - 7], [e.point.x + 7, e.point.y + 7]], { layers: pointLayers }).length ? 'pointer' : '';
+      });
+      map.on('mouseleave', () => { if (map) map.getCanvas().style.cursor = ''; });
       map.on('error', () => { if (alive && map && !map.getSource('local-roads')) { map.setStyle(localStyle); setMode('Peta lokal · OSM'); } });
       fetch('https://tiles.openfreemap.org/styles/positron', { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10000)]) })
         .then(r => { if (!r.ok) throw Error('Basemap unavailable'); return r.json(); })
@@ -127,15 +190,17 @@ export default function KupangMap(props: Props) {
   function zoom(delta: number) { if (mapRef.current) mapRef.current.zoomTo(mapRef.current.getZoom() + delta); else setFallbackZoom(x => Math.max(1, Math.min(2.5, x + delta * .25))); }
   return <div className="map-surface">
     <div ref={host} className="map-canvas" aria-label="Peta interaktif Kota Kupang" />
-    {!ready && <svg className="map-fallback" viewBox={`0 0 ${size.width} ${size.height}`} role="img" aria-label="Peta lokal Kota Kupang dengan rute rujukan"><g transform={`translate(${size.width / 2} ${size.height / 2}) scale(${fallbackZoom}) translate(${-size.width / 2} ${-size.height / 2})`}>
+    {!ready && <svg className="map-fallback interactive-fallback" viewBox={`0 0 ${size.width} ${size.height}`} role="img" aria-label="Peta lokal Kota Kupang dengan rute rujukan"><g transform={`translate(${size.width / 2} ${size.height / 2}) scale(${fallbackZoom}) translate(${-size.width / 2} ${-size.height / 2})`}>
       <path d={path(props.data.boundary) ?? ''} fill="#f7f6ee" stroke="#719689" strokeDasharray="5 4" />
       <path d={path(props.data.roads) ?? ''} stroke="#c9d1c8" fill="none" strokeWidth="1" />
       {layers.lines.features.map((f, i) => <path key={`r${i}`} d={path(f.geometry) ?? ''} fill="none" stroke={f.properties?.color} strokeWidth={f.properties?.selected ? 4 : 2} opacity={f.properties?.selected ? 1 : .4} />)}
       {layers.alt.features.map((f, i) => <path key={`a${i}`} d={path(f.geometry) ?? ''} fill="none" stroke="#4485b4" strokeWidth="2" strokeDasharray="5 4" />)}
       {layers.selected.features.map(f => <path key={f.properties?.caseId} d={path(f.geometry) ?? ''} fill="none" stroke={f.properties?.color} strokeWidth="5" />)}
-      {props.publicLayer && props.data.publicFacilities.map(f => { const p = projection([f.lon, f.lat])!; return <circle key={f.id} cx={p[0]} cy={p[1]} r="2" fill="#657286" />; })}
-      {layers.points.features.map(f => { const g = f.geometry as GeoJSON.Point; const p = projection([g.coordinates[0], g.coordinates[1]])!; return <g key={f.properties?.id}><circle cx={p[0]} cy={p[1]} r={f.properties?.selected ? 7 : 5} fill={f.properties?.color} stroke="white" strokeWidth="2" /><text x={p[0] + 7} y={p[1] - 7} fontSize="10" fill="#254b40">{f.properties?.id}</text></g>; })}
+      {props.publicLayer && props.data.publicFacilities.map(f => { const p = projection([f.lon, f.lat])!; return <g key={f.id} role="button" tabIndex={0} aria-label={`Informasi ${f.name}`} onClick={() => openPoint({ kind: 'public', id: f.id })} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPoint({ kind: 'public', id: f.id }); } }}><circle cx={p[0]} cy={p[1]} r="10" fill="transparent" /><circle cx={p[0]} cy={p[1]} r="3" fill="#657286" /></g>; })}
+      {layers.points.features.map(f => { const g = f.geometry as GeoJSON.Point; const p = projection([g.coordinates[0], g.coordinates[1]])!; return <g key={f.properties?.id} role="button" tabIndex={0} aria-label={`Informasi ${f.properties?.id}`} onClick={() => openPoint({ kind: 'synthetic', id: f.properties!.id })} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPoint({ kind: 'synthetic', id: f.properties!.id }); } }}><circle cx={p[0]} cy={p[1]} r="12" fill="transparent" /><circle cx={p[0]} cy={p[1]} r={f.properties?.selected ? 7 : 5} fill={f.properties?.color} stroke="white" strokeWidth="2" /><text x={p[0] + 7} y={p[1] - 7} fontSize="10" fill="#254b40">{f.properties?.id}</text></g>; })}
     </g></svg>}
+    {activePoint && popupHost && createPortal(<FacilityPopup point={activePoint} data={props.data} selected={props.selected} assessment={props.assessment} cases={props.cases} onOpenPoint={openPoint} />, popupHost)}
+    {activePoint && !ready && <div className="fallback-facility-popup" role="dialog" aria-label="Informasi titik fasilitas"><button className="fallback-popup-close" aria-label="Tutup informasi fasilitas" onClick={() => setActivePoint(null)}>×</button><FacilityPopup point={activePoint} data={props.data} selected={props.selected} assessment={props.assessment} cases={props.cases} onOpenPoint={openPoint} /></div>}
     <div className="map-location"><MapPin size={15} /><div><strong>Kota Kupang</strong><span>Nusa Tenggara Timur</span></div><span className="map-location-dot" /></div>
     {props.selected && <div className="map-selected-case" role="status" aria-live="polite"><strong>{props.selected.id}</strong><span>Asal {props.selected.from} → Tujuan {props.selected.to}{props.routeCaseCount ? ` (${props.routeCaseCount} kasus rujukan)` : ''}</span><small>{props.routesLayer ? 'Garis tebal: rute kasus terpilih' : 'Layer rute sedang disembunyikan'}</small></div>}
     <div className="map-controls"><button aria-label="Perbesar peta" onClick={() => zoom(1)}><Plus size={17} /></button><button aria-label="Perkecil peta" onClick={() => zoom(-1)}><Minus size={17} /></button><button aria-label="Tampilkan seluruh Kota Kupang" onClick={() => { mapRef.current?.fitBounds(bounds, { padding: 32, duration: 500 }); setFallbackZoom(1); }}><Crosshair size={17} /></button></div>
