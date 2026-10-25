@@ -56,6 +56,7 @@ import AppHeader from './AppHeader';
 import BrandLogo from './BrandLogo';
 import GeoAIViewer from './GeoAIViewer';
 import CaseDetails from './CaseDetails';
+import { investigationBackHref } from '@/lib/map-overview';
 
 const NTTMap = dynamic(() => import('./NTTMap'), {
   ssr: false,
@@ -75,7 +76,7 @@ type Props = {
 type InvestigationTab = 'summary' | 'evidence' | 'visits' | 'methods';
 
 const simulationAgents = [
-  { name: 'Agen Data & Wilayah', action: 'Memeriksa cakupan master rujukan NTT (21 kab/kota)', icon: Database },
+  { name: 'Agen Data & Wilayah', action: 'Memeriksa cakupan master rujukan NTT', icon: Database },
   { name: 'Agen Kapabilitas Faskes', action: 'Menyaring layanan dan kapasitas faskes rujukan', icon: Building2 },
   { name: 'Agen GeoAI & Aksesibilitas', action: 'Menghitung proksi jarak dan selisih waktu tempuh fasilitas', icon: RouteIcon },
   { name: 'Agen Konteks Penginderaan Jauh', action: 'Mencocokkan citra Sentinel-2 dan overlay indeks sintetis', icon: Sparkles },
@@ -94,11 +95,10 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
 
   // Tab state (query param or default to summary)
   const paramTab = searchParams.get('tab') as InvestigationTab | null;
-  const [activeTab, setActiveTab] = useState<InvestigationTab>(
+  const activeTab: InvestigationTab =
     paramTab && ['summary', 'evidence', 'visits', 'methods'].includes(paramTab)
       ? paramTab
-      : 'summary'
-  );
+      : 'summary';
 
   // GeoAI State
   const [activeGeoAIImage, setActiveGeoAIImage] = useState<GeoAIImage | null>(null);
@@ -120,6 +120,10 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
   const [agentStep, setAgentStep] = useState(-1);
   const [agentCompleted, setAgentCompleted] = useState(false);
   const simTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => () => { if (simTimer.current) clearInterval(simTimer.current); }, []);
+  useEffect(() => {
+    if (activeTab === 'evidence' && episode?.hasGeoAI) setShowOverlay(true);
+  }, [activeTab, episode?.hasGeoAI]);
 
   // Sync GeoAI image when episode or tab changes
   useEffect(() => {
@@ -139,14 +143,13 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
 
   // Auto-enable overlay when switching to evidence tab
   const handleTabChange = (tab: InvestigationTab) => {
-    setActiveTab(tab);
     if (tab === 'evidence' && episode?.hasGeoAI) {
       setShowOverlay(true);
     }
     // Update URL query param without full reload
     const current = new URLSearchParams(searchParams.toString());
     current.set('tab', tab);
-    router.replace(`/episode/${episodeId}?${current.toString()}`);
+    router.replace(`/episode/${episodeId}?${current.toString()}`, { scroll: false });
   };
 
   // Load visits on-demand when user opens "visits" tab
@@ -196,13 +199,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
   };
 
   // Build the "Kembali ke antrean" link preserving search/filter params
-  const backToQueueParams = new URLSearchParams();
-  for (const [key, value] of searchParams.entries()) {
-    if (key !== 'tab') {
-      backToQueueParams.set(key, value);
-    }
-  }
-  const backToQueueUrl = `/episode${backToQueueParams.toString() ? `?${backToQueueParams.toString()}` : ''}`;
+  const backToQueueUrl = investigationBackHref(new URLSearchParams(searchParams));
 
   // If episode not found in dataset: Truthful Not Found Screen
   if (!episode) {
@@ -242,7 +239,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
         <div className="top-bar-inner">
           <Link href={backToQueueUrl} className="back-link">
             <ArrowLeft size={16} />
-            <span>Kembali ke daftar episode</span>
+            <span>{searchParams.get('from') === 'map' ? 'Kembali ke peta NTT' : 'Kembali ke daftar episode'}</span>
           </Link>
 
           <div className="top-bar-badges">
@@ -307,10 +304,18 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
         </section>
 
         {/* Tab Navigation */}
-        <nav className="inv-tabs" role="tablist" aria-label="Bagian penelaahan episode">
+        <nav className="inv-tabs" role="tablist" aria-label="Bagian penelaahan episode" onKeyDown={event => {
+          const tabs: InvestigationTab[] = ['summary', 'evidence', 'visits', 'methods'];
+          const index = tabs.indexOf(activeTab);
+          const next = event.key === 'ArrowRight' ? (index + 1) % 4 : event.key === 'ArrowLeft' ? (index + 3) % 4 : event.key === 'Home' ? 0 : event.key === 'End' ? 3 : -1;
+          if (next >= 0) { event.preventDefault(); handleTabChange(tabs[next]); document.getElementById(`investigation-tab-${tabs[next]}`)?.focus(); }
+        }}>
           <button
             type="button"
             role="tab"
+            id="investigation-tab-summary"
+            aria-controls="investigation-tab-content"
+            tabIndex={activeTab === 'summary' ? 0 : -1}
             aria-selected={activeTab === 'summary'}
             className={`inv-tab-btn ${activeTab === 'summary' ? 'active' : ''}`}
             onClick={() => handleTabChange('summary')}
@@ -322,6 +327,9 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
           <button
             type="button"
             role="tab"
+            id="investigation-tab-evidence"
+            aria-controls="investigation-tab-content"
+            tabIndex={activeTab === 'evidence' ? 0 : -1}
             aria-selected={activeTab === 'evidence'}
             className={`inv-tab-btn ${activeTab === 'evidence' ? 'active' : ''}`}
             onClick={() => handleTabChange('evidence')}
@@ -333,6 +341,9 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
           <button
             type="button"
             role="tab"
+            id="investigation-tab-visits"
+            aria-controls="investigation-tab-content"
+            tabIndex={activeTab === 'visits' ? 0 : -1}
             aria-selected={activeTab === 'visits'}
             className={`inv-tab-btn ${activeTab === 'visits' ? 'active' : ''}`}
             onClick={() => handleTabChange('visits')}
@@ -344,6 +355,9 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
           <button
             type="button"
             role="tab"
+            id="investigation-tab-methods"
+            aria-controls="investigation-tab-content"
+            tabIndex={activeTab === 'methods' ? 0 : -1}
             aria-selected={activeTab === 'methods'}
             className={`inv-tab-btn ${activeTab === 'methods' ? 'active' : ''}`}
             onClick={() => handleTabChange('methods')}
@@ -356,7 +370,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
         {/* Tab Content + Map Grid */}
         <div className="inv-content-grid">
           {/* Left Column: Focused Detail Panes */}
-          <div className="inv-panel-left">
+          <div className="inv-panel-left" role="tabpanel" id="investigation-tab-content" aria-labelledby={`investigation-tab-${activeTab}`} tabIndex={0}>
             {activeTab === 'summary' && (
               <div className="inv-summary-pane">
                 {/* 1. Mengapa episode ini ditandai? */}
@@ -387,14 +401,12 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                     ) : cat === 'orange' ? (
                       <p>
                         Episode rujukan ini berada pada kategori <strong>Indikasi Sedang (SEDANG_SIM)</strong>.
-                        Terdapat perbedaan waktu perjalanan atau kapasitas faskes yang memerlukan penelaahan
-                        verifikasi berkala terhadap kontinuitas perawatan atau rujukan berulang.
+                        Periksa perbandingan waktu proksi dan catatan rujukan di bawah untuk memahami konteks episode ini.
                       </p>
                     ) : (
                       <p>
                         Episode rujukan ini berada pada kategori <strong>Indikasi Rendah (RENDAH_SIM)</strong>.
-                        Pemilihan faskes tujuan dinilai wajar dan sesuai dengan faskes rujukan terdekat
-                        atau kontinuitas layanan medis standar tanpa lonjakan selisih waktu signifikan.
+                        Kategori ini berasal dari master simulasi. Perbandingan waktu proksi dan catatan rujukan tetap dapat ditelaah; kategori rendah tidak membuktikan ketiadaan fraud.
                       </p>
                     )}
 
@@ -457,7 +469,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                           <div>
                             <span>Selisih Waktu</span>
                             <strong className={episode.diffMin && episode.diffMin > 0 ? 'text-alert' : ''}>
-                              {episode.diffMin ? `+${episode.diffMin.toFixed(1)} menit` : '—'}
+                              {episode.diffMin != null ? `${episode.diffMin > 0 ? '+' : ''}${episode.diffMin.toFixed(1)} menit` : '—'}
                             </strong>
                           </div>
                         </div>
@@ -493,7 +505,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                         <div>
                           <strong>Katalog Faskes Referensi NTT</strong>
                           <p>
-                            Koordinat dan peran faskes terverifikasi dalam 879 titik fasilitas NTT.
+                            Tersedia {formatNumber(data.summary.totals.facilitiesReference)} titik referensi fasilitas NTT. Status verifikasi peran dan keberadaan pada 2024 perlu diperiksa pada sumber fasilitas.
                           </p>
                         </div>
                       </div>
@@ -547,7 +559,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                   setOverlayOpacity={setOverlayOpacity}
                   showSatelliteBackdrop={showSatelliteBackdrop}
                   setShowSatelliteBackdrop={setShowSatelliteBackdrop}
-                  onSelectEpisode={(id) => router.push(`/episode/${id}?tab=evidence`)}
+                  onSelectEpisode={(id) => { const next = new URLSearchParams(searchParams); next.set('tab', 'evidence'); router.push(`/episode/${id}?${next}`); }}
                 />
               </div>
             )}
@@ -597,7 +609,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                             <td>{dateLabel(v.dateFktp)}</td>
                             <td>{dateLabel(v.dateFkrtl)}</td>
                             <td>{v.diagnosa || '—'}</td>
-                            <td>{v.poli || 'Umum'}</td>
+                            <td>{v.poli || 'Belum tersedia'}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -729,11 +741,12 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                   <Compass size={14} />
                   Peta Spasial Rujukan &amp; Faskes Terdekat
                 </span>
-                <span className="inv-map-badge">MapLibre GL</span>
+                <span className="inv-map-badge">Konteks episode</span>
               </div>
 
               <div className="inv-map-frame">
                 <NTTMap
+                  compact
                   data={data}
                   episodes={data.episodes}
                   selected={episode}

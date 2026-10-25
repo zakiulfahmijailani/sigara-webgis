@@ -68,7 +68,8 @@ export default function GeoAIViewer({
   return (
     <div className="geoai-viewer-container" style={{ padding: '4px 0' }}>
       {/* 8-Episode Quick Access Bar */}
-      <div style={{ marginBottom: '14px', background: '#f5f9f6', padding: '10px 12px', borderRadius: '8px', border: '1px solid #dbe6de' }}>
+      <details style={{ marginBottom: '14px', background: '#f5f9f6', padding: '10px 12px', borderRadius: '8px', border: '1px solid #dbe6de' }}>
+        <summary style={{ fontSize: '13px', cursor: 'pointer', color: '#2d6852', padding: '4px 0' }}>Jelajahi episode contoh lainnya</summary>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
           <span style={{ fontSize: '10px', fontWeight: 600, color: '#2d6852', display: 'flex', alignItems: 'center', gap: '5px' }}>
             <Sparkles size={13} /> 8 Episode Contoh Bukti GeoAI
@@ -100,7 +101,7 @@ export default function GeoAIViewer({
             );
           })}
         </div>
-      </div>
+      </details>
 
       {!hasEvidence ? (
         /* Truthful No-Illustration State */
@@ -123,7 +124,7 @@ export default function GeoAIViewer({
           </p>
           <div style={{ marginTop: '14px' }}>
             <span style={{ fontSize: '9px', color: '#7a8e83' }}>
-              Gunakan bilah tombol di atas atau filter <strong>&quot;Ada bukti GeoAI&quot;</strong> untuk melihat 8 contoh bukti bencana.
+              Buka &quot;Jelajahi episode contoh lainnya&quot; untuk melihat skenario GeoAI yang tersedia.
             </span>
           </div>
         </div>

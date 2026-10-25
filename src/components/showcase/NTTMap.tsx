@@ -16,6 +16,7 @@ import {
 } from '@/lib/showcase';
 
 type Props = {
+  compact?: boolean;
   data: ShowcaseData;
   episodes: Episode[];
   selected: Episode | null;
@@ -40,11 +41,12 @@ export default function NTTMap(props: Props) {
   current.current = props;
 
   const [ready, setReady] = useState(false);
+  const [styleVersion, setStyleVersion] = useState(0);
   const [mode, setMode] = useState('Peta lokal');
   const [size, setSize] = useState({ width: 700, height: 600 });
   const [activePoint, setActivePoint] = useState<MapPoint | null>(null);
   const [popupHost, setPopupHost] = useState<HTMLDivElement | null>(null);
-  const [showRefFacilities, setShowRefFacilities] = useState(true);
+  const [showRefFacilities, setShowRefFacilities] = useState(false);
 
   // SVG Fallback zoom
   const [fallbackZoom, setFallbackZoom] = useState(1);
@@ -267,6 +269,7 @@ export default function NTTMap(props: Props) {
     }
   }, [
     ready,
+    styleVersion,
     props.activeGeoAIImage,
     props.showOverlay,
     props.overlayOpacity,
@@ -381,6 +384,7 @@ export default function NTTMap(props: Props) {
           id: 'facilities-ref-layer',
           type: 'circle',
           source: 'facilities-ref',
+          layout: { visibility: 'none' },
           paint: {
             'circle-color': '#718c81',
             'circle-radius': [
@@ -467,6 +471,7 @@ export default function NTTMap(props: Props) {
       }
 
       setReady(true);
+      setStyleVersion(version => version + 1);
       focusSelectedCase(map, 0);
     }
 
@@ -587,7 +592,7 @@ export default function NTTMap(props: Props) {
     (map.getSource('highlight-source') as GeoJSONSource | undefined)?.setData(
       mapFeatures.highlighted
     );
-  }, [mapFeatures, ready]);
+  }, [mapFeatures, ready, styleVersion]);
 
   // Toggle reference facilities layer visibility
   useEffect(() => {
@@ -600,7 +605,7 @@ export default function NTTMap(props: Props) {
         showRefFacilities ? 'visible' : 'none'
       );
     }
-  }, [showRefFacilities, ready]);
+  }, [showRefFacilities, ready, styleVersion]);
 
   // Case focus change triggers
   useEffect(() => {
@@ -608,7 +613,7 @@ export default function NTTMap(props: Props) {
     if (!map || !ready) return;
     focusSelectedCase(map, 600);
     setFallbackZoom(1);
-  }, [props.selected?.id, props.focusRequest, ready]);
+  }, [props.selected?.id, props.focusRequest, ready, styleVersion]);
 
   // Popup lifecycle
   useEffect(() => {
@@ -747,17 +752,17 @@ export default function NTTMap(props: Props) {
         )}
 
       {/* Location Badge */}
-      <div className="map-location">
+      {!props.compact && <div className="map-location">
         <MapPin size={15} />
         <div>
           <strong>Kepulauan Nusa Tenggara Timur</strong>
-          <span>Cakupan Provinsi · 21 Kab/Kota · 879 Faskes</span>
+          <span>Cakupan Provinsi · {props.data.districts.features.length} wilayah · {props.data.summary.totals.facilitiesReference} faskes</span>
         </div>
         <span className="map-location-dot" />
-      </div>
+      </div>}
 
       {/* Selected Case Notification Strip */}
-      {props.selected && (
+      {props.selected && !props.compact && (
         <div className="map-selected-case" role="status" aria-live="polite">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%' }}>
             <span className={`status-dot ${selCat}`} />
@@ -817,31 +822,17 @@ export default function NTTMap(props: Props) {
         )}
       </div>
 
-      {/* Layer Floating Controls */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '16px',
-          right: '65px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          borderRadius: '7px',
-          border: '1px solid #dce4d9',
-          padding: '6px 10px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          fontSize: '10px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-          zIndex: 4,
-        }}
-      >
+      {/* Layer controls are disclosed when requested. */}
+      <details className="case-map-layers">
+        <summary><Layers size={15} /> Lapisan peta</summary>
+        <div className="case-map-layer-options">
         <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
           <input
             type="checkbox"
             checked={showRefFacilities}
             onChange={(e) => setShowRefFacilities(e.target.checked)}
           />
-          <span>Faskes (879)</span>
+          <span>Referensi faskes ({props.data.summary.totals.facilitiesReference})</span>
         </label>
 
         {props.activeGeoAIImage && (
@@ -880,7 +871,8 @@ export default function NTTMap(props: Props) {
             </label>
           </>
         )}
-      </div>
+        </div>
+      </details>
 
       {/* Map Legend */}
       <div className="map-key">
@@ -900,10 +892,10 @@ export default function NTTMap(props: Props) {
           <i style={{ width: 14, height: 2, background: colors[selCat], display: 'inline-block', verticalAlign: 'middle' }} />
           Garis OD (proksi akses)
         </span>
-        <span>
+        {showRefFacilities && <span>
           <i style={{ width: 6, height: 6, background: '#718c81', borderRadius: '50%', display: 'inline-block' }} />
-          Katalog Faskes (879)
-        </span>
+          Referensi faskes
+        </span>}
         {props.activeGeoAIImage && props.showOverlay && (
           <span style={{ color: '#0369a1', fontWeight: 600 }}>
             <i style={{ width: 10, height: 10, background: 'rgba(3,105,161,0.4)', border: '1px solid #0369a1', display: 'inline-block' }} />

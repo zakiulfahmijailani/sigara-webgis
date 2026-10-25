@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, Suspense } from 'react';
 import { LoaderCircle, MapPinned } from 'lucide-react';
+import { loadShowcase } from '@/lib/load-showcase';
 import type { ShowcaseData } from '@/lib/showcase';
 import EpisodeQueue from '@/components/showcase/EpisodeQueue';
 import BrandLogo from '@/components/showcase/BrandLogo';
@@ -10,14 +11,7 @@ function EpisodeQueueLoader() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch('/api/showcase')
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
-      .then((res) => {
-        if (res?.data) setData(res.data);
-      })
+    loadShowcase().then(setData)
       .catch(() => setError(true));
   }, []);
 

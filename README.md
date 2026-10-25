@@ -2,9 +2,17 @@
 
 Showcase platform penelaahan rujukan akuntabel berbasis kecerdasan geospasial (GeoAI) dan penginderaan jauh untuk seluruh **Provinsi Nusa Tenggara Timur (NTT)**, Indonesia, dalam rangka **BPJS Healthkathon 2026**.
 
+## Alur penelaahan: peta → episode → bukti
+
+Halaman `/` langsung menampilkan peta NTT. Pengguna dapat memfilter kategori, wilayah asal, periode, atau ketersediaan ilustrasi GeoAI. Penanda mengelompokkan episode berdasarkan titik asal; angka menunjukkan jumlah episode dan lingkaran warna menunjukkan komposisi kategori simulasi. Klik kelompok wilayah untuk memperbesar, lalu pilih titik dan episode untuk membuka halaman penelaahan. Daftar episode dapat ditutup agar peta lebih luas.
+
+Halaman `/episode/[id]` memisahkan ringkasan, bukti GeoAI, kunjungan, dan metode. Tombol **Kembali ke peta NTT** mengembalikan filter, pilihan titik, halaman daftar, dan posisi peta melalui URL. Data snapshot dibagi selama navigasi dalam aplikasi; gambar bukti dan kunjungan dimuat saat dibuka. Peta awal memakai batas lokal sehingga tidak membutuhkan API key atau layanan tile eksternal.
+
+Detail perilaku dan cara menjalankan pemeriksaan browser: [docs/map-first-ux.md](docs/map-first-ux.md).
+
 ## 1. Cakupan Data & Master Rujukan NTT
 
-- **Wilayah**: Seluruh 21 Kabupaten/Kota di Kepulauan Nusa Tenggara Timur (Flores, Sumba, Timor Barat, Alor, Lembata, Rote Ndao, Sabu Raijua) menggunakan batas resmi GADM 4.1.
+- **Wilayah**: Kepulauan Nusa Tenggara Timur (Flores, Sumba, Timor Barat, Alor, Lembata, Rote Ndao, Sabu Raijua) menggunakan geometri provinsi dan kabupaten/kota dari GADM 4.1. Pilihan filter mengikuti wilayah asal yang tercatat pada master.
 - **Total Master Rujukan 2024**:
   - **10.776 kunjungan** rujukan tingkat lanjut (FKRTL).
   - **3.683 episode rujukan unik** (`id_kelompok_rujukan_fktp` bertipe string).
@@ -62,7 +70,7 @@ Skrip ini memproses master parquet, katalog faskes, GADM batas wilayah, dan pake
 ### Menjalankan Server & Validasi
 ```sh
 npm install
-npm test            # Menjalankan 8 pengujian otomatis
+npm test            # Menjalankan pemeriksaan data dan navigasi peta
 npm run typecheck   # Validasi tipe TypeScript
 npm run build       # Membangun bundel produksi Next.js
 npm run dev         # Menjalankan server pengembang lokal di http://localhost:3000
@@ -72,7 +80,7 @@ npm run dev         # Menjalankan server pengembang lokal di http://localhost:30
 
 - Endpoint `GET /api/showcase` melayani kontrak versi `ntt-showcase-v2`.
 - Jika `DATABASE_URL` tersedia, aplikasi mencoba memuat snapshot `ntt-showcase-v2` dari Neon Serverless Postgres. Jika tidak tersedia atau tidak cocok, aplikasi secara otomatis menggunakan snapshot lokal terverifikasi di `src/data/`.
-- Endpoint `GET /api/showcase/visits?episodeId=...` memuat lini masa kunjungan secara on-demand sehingga ukuran payload halaman awal tetap sangat ringan (First Load JS: ~124 kB).
+- Endpoint `GET /api/showcase/visits?episodeId=...` memuat lini masa kunjungan saat tab kunjungan dibuka. Gambar GeoAI juga dimuat saat diperlukan; snapshot episode dan geometri dipakai bersama selama navigasi dalam aplikasi.
 
 ## 6. Repositori & Publikasi
 

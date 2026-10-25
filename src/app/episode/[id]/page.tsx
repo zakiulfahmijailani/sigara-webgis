@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, use, Suspense } from 'react';
 import { LoaderCircle } from 'lucide-react';
+import { loadShowcase } from '@/lib/load-showcase';
 import type { ShowcaseData } from '@/lib/showcase';
 import EpisodeInvestigation from '@/components/showcase/EpisodeInvestigation';
 import BrandLogo from '@/components/showcase/BrandLogo';
@@ -17,14 +18,7 @@ function InvestigationLoader({ params }: PageProps) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch('/api/showcase')
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
-      .then((res) => {
-        if (res?.data) setData(res.data);
-      })
+    loadShowcase().then(setData)
       .catch(() => setError(true));
   }, []);
 
@@ -56,7 +50,7 @@ function InvestigationLoader({ params }: PageProps) {
     );
   }
 
-  return <EpisodeInvestigation data={data} episodeId={episodeId} />;
+  return <EpisodeInvestigation key={episodeId} data={data} episodeId={episodeId} />;
 }
 
 export default function EpisodeDetailPage({ params }: PageProps) {

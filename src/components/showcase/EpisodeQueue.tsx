@@ -389,7 +389,7 @@ export default function EpisodeQueue({ data }: Props) {
                     value={district}
                     onChange={(e) => handleDistrictChange(e.target.value)}
                   >
-                    <option value="all">Seluruh NTT (21 Kab/Kota)</option>
+                    <option value="all">Seluruh NTT (wilayah asal)</option>
                     {data.summary.districts.map((d) => (
                       <option key={d} value={d}>
                         {d}

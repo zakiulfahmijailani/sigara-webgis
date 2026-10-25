@@ -25,34 +25,38 @@ export default function AppHeader({ onOpenAbout }: Props) {
             SIGARA<span> / </span>
             <small>GeoAI NTT</small>
           </strong>
-          <p>Rujukan akuntabel berbasis bukti penginderaan jauh.</p>
+          <p>Penelaahan rujukan berbasis konteks spasial.</p>
         </div>
       </Link>
 
       <nav className="header-nav" aria-label="Menu utama">
         <Link
           href="/"
+          aria-current={isHome ? 'page' : undefined}
           className={`header-nav-item ${isHome ? 'active' : ''}`}
         >
-          <Home size={15} />
-          <span>Beranda</span>
+          <MapPinned size={15} />
+          <span>Peta NTT</span>
         </Link>
         <Link
           href="/episode?cat=red"
+          aria-current={isEpisode ? 'page' : undefined}
           className={`header-nav-item ${isEpisode ? 'active' : ''}`}
         >
           <Layers3 size={15} />
-          <span>Episode Rujukan</span>
+          <span>Episode</span>
         </Link>
         <Link
           href="/ringkasan"
+          aria-current={isRingkasan ? 'page' : undefined}
           className={`header-nav-item ${isRingkasan ? 'active' : ''}`}
         >
           <BarChart3 size={15} />
-          <span>Ringkasan NTT</span>
+          <span>Ringkasan</span>
         </Link>
         <Link
           href="/contoh-geoai"
+          aria-current={isContoh ? 'page' : undefined}
           className={`header-nav-item ${isContoh ? 'active' : ''}`}
         >
           <Sparkles size={15} />
