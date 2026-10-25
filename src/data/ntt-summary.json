@@ -1,0 +1,87 @@
+{
+  "version": "ntt-showcase-v2",
+  "snapshotAt": "2026-10-25T20:30:00+07:00",
+  "masterSha256": "16e8c61edd46dec13b47b93ebf42c3eeea5fb601c6b89bcbc87e03ed7d2b4936",
+  "referenceSha256": "d49ef3ca3e6b93454457480eca29814a671a66139861467f0b0c265071865c7b",
+  "scope": "Nusa Tenggara Timur (Provinsi & Kepulauan)",
+  "totals": {
+    "visits": 10776,
+    "episodes": 3683,
+    "participants": 2329,
+    "facilitiesReference": 879,
+    "masterUniqueOrigins": 185,
+    "masterUniqueDestinations": 387,
+    "masterUniqueFacilities": 572,
+    "geoaiEpisodes": 8,
+    "outsideAltEpisodes": 10
+  },
+  "episodeCategories": {
+    "TINGGI_SIM": 364,
+    "SEDANG_SIM": 23,
+    "RENDAH_SIM": 3296
+  },
+  "visitCategories": {
+    "TINGGI_SIM": 926,
+    "SEDANG_SIM": 49,
+    "RENDAH_SIM": 9801
+  },
+  "months": [
+    "2024-01",
+    "2024-02",
+    "2024-03",
+    "2024-04",
+    "2024-05",
+    "2024-06",
+    "2024-07",
+    "2024-08",
+    "2024-09",
+    "2024-10",
+    "2024-11",
+    "2024-12"
+  ],
+  "districts": [
+    "Alor",
+    "Belu",
+    "Ende",
+    "FloresTimur",
+    "KotaKupang",
+    "Kupang",
+    "Lembata",
+    "Manggarai",
+    "ManggaraiBarat",
+    "ManggaraiTimur",
+    "Ngada",
+    "RoteNdao",
+    "SabuRaijua",
+    "Sikka",
+    "SumbaBarat",
+    "SumbaBaratDaya",
+    "SumbaTengah",
+    "SumbaTimur",
+    "TimorTengahSelatan",
+    "TimorTengahUtara"
+  ],
+  "geoaiEpisodeIds": [
+    "177250424P000119",
+    "23120624P000056",
+    "42640724P000004",
+    "23670224P000184",
+    "290411124Y000018",
+    "24181024Y000034",
+    "496481024Y000339",
+    "192850524Y000219"
+  ],
+  "outsideAltEpisodeIds": [
+    "857821024P000557",
+    "435200824P000114",
+    "435180124P000001",
+    "291390324P000294",
+    "631980524P000001",
+    "631980124P000056",
+    "631980324P000020",
+    "435200424P000014",
+    "291450124P000123",
+    "435201224P000028"
+  ],
+  "disclaimer": "Kasus, koordinat fasilitas, dan indeks prioritas merupakan data sintetis untuk keperluan simulasi POC Healthkathon 2026. Bukan penetapan kecurangan (fraud) terbukti."
+}

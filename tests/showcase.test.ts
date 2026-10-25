@@ -1,115 +1,150 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import raw from '../src/data/showcase.json';
-import { assess, type ShowcaseData } from '../src/lib/showcase';
-const data = raw as ShowcaseData;
-test('the requested 25 / 52 / 1003 counts are computed from cases, not fixed badges', () => {
-  const counts = { red: 0, orange: 0, green: 0 };
-  data.cases.forEach(r => counts[assess(r, data).category]++);
-  assert.deepEqual(counts, { red: 25, orange: 52, green: 1003 });
-  assert.equal(new Set(data.cases.map(r => r.id)).size, 1080);
-  assert.equal(data.cases.filter(r => r.showcaseAdjusted).length, 25);
+import fs from 'node:fs';
+import path from 'node:path';
+
+import summary from '../src/data/ntt-summary.json';
+import episodes from '../src/data/ntt-episodes.json';
+import facilities from '../src/data/ntt-facilities.json';
+import geoai from '../src/data/ntt-geoai-manifest.json';
+import boundary from '../src/data/ntt-boundary.json';
+import districts from '../src/data/ntt-districts.json';
+
+test('1. Total visits, episodes, and participants match specification', () => {
+  assert.equal(summary.totals.visits, 10776);
+  assert.equal(summary.totals.episodes, 3683);
+  assert.equal(summary.totals.participants, 2329);
+  assert.equal(episodes.length, 3683);
+
+  // All episode IDs are unique strings
+  const ids = new Set(episodes.map((e) => String(e.id)));
+  assert.equal(ids.size, 3683);
 });
-test('every red scenario has real route comparisons and all three thresholds', () => {
-  for (const r of data.cases.filter(r => assess(r, data).category === 'red')) {
-    const a = assess(r, data);
-    assert.ok(a.extra! >= 8 && a.ratio! >= 1.5 && a.alternatives.length >= 2);
-    assert.equal(a.missing.length, 0);
-    assert.equal(r.showcaseAdjusted, true);
-    for (const x of a.alternatives) {
-      assert.equal(data.capabilities[x.id][r.service], true);
-      assert.equal(r.capacities[x.id], true);
-      assert.ok(x.minutes < a.targetMinutes!);
+
+test('2. Preserved categories match authoritative master totals (episodes and visits)', () => {
+  const counts = { TINGGI_SIM: 0, SEDANG_SIM: 0, RENDAH_SIM: 0 };
+  let totalVisits = 0;
+  const visitCounts = { TINGGI_SIM: 0, SEDANG_SIM: 0, RENDAH_SIM: 0 };
+
+  for (const ep of episodes) {
+    counts[ep.cat as keyof typeof counts]++;
+    visitCounts[ep.cat as keyof typeof visitCounts] += ep.visitCount;
+    totalVisits += ep.visitCount;
+  }
+
+  assert.deepEqual(counts, {
+    TINGGI_SIM: 364,
+    SEDANG_SIM: 23,
+    RENDAH_SIM: 3296,
+  });
+
+  assert.deepEqual(visitCounts, {
+    TINGGI_SIM: 926,
+    SEDANG_SIM: 49,
+    RENDAH_SIM: 9801,
+  });
+
+  assert.equal(totalVisits, 10776);
+});
+
+test('3. Reference facilities catalogue contains exactly 879 records with valid coordinates', () => {
+  assert.equal(facilities.features.length, 879);
+  assert.equal(summary.totals.facilitiesReference, 879);
+
+  for (const f of facilities.features) {
+    const [lon, lat] = (f as any).geometry.coordinates;
+    assert.ok(typeof lon === 'number' && !isNaN(lon), `Invalid lon for ${f.properties.id}`);
+    assert.ok(typeof lat === 'number' && !isNaN(lat), `Invalid lat for ${f.properties.id}`);
+    assert.ok(lon >= 118.0 && lon <= 126.0, `Lon out of bounds for ${f.properties.id}: ${lon}`);
+    assert.ok(lat >= -12.0 && lat <= -7.5, `Lat out of bounds for ${f.properties.id}: ${lat}`);
+  }
+});
+
+test('4. Master origin and destination facilities are reconciled against reference', () => {
+  const refIds = new Set(facilities.features.map((f: any) => f.properties.id));
+  const origIds = new Set(episodes.map((e) => e.fromId));
+  const destIds = new Set(episodes.map((e) => e.toId));
+
+  assert.equal(origIds.size, 185, 'Expected 185 unique origin facilities');
+  assert.equal(destIds.size, 387, 'Expected 387 unique destination facilities');
+
+  // Verify all are in reference
+  for (const id of origIds) {
+    assert.ok(refIds.has(id), `Origin ${id} not found in reference`);
+  }
+  for (const id of destIds) {
+    assert.ok(refIds.has(id), `Destination ${id} not found in reference`);
+  }
+});
+
+test('5. Exactly 16 images join to exactly 8 distinct episodes (2 per episode)', () => {
+  assert.equal(geoai.images.length, 16);
+  assert.equal(geoai.count, 16);
+
+  const episodeToImages = new Map<string, typeof geoai.images>();
+  for (const img of geoai.images) {
+    const epId = String(img.episode);
+    if (!episodeToImages.has(epId)) {
+      episodeToImages.set(epId, []);
     }
-  }
-});
-const red = data.cases.find(r => assess(r, data).category === 'red')!;
-test('missing capacity must become orange rather than being mistaken for a red finding', () => {
-  const r = { ...red, capacities: { ...red.capacities, [red.to]: null } };
-  assert.equal(assess(r, data).category, 'orange');
-});
-test('unavailable route and missing evidence block conclusions', () => {
-  const routes = data.routes.filter(r => !(r.from === red.from && r.to === red.to));
-  assert.equal(assess(red, { ...data, routes }).category, 'orange');
-  assert.equal(assess({ ...red, evidence: false }, data).category, 'orange');
-});
-test('a documented reason is respected, but does not override incomplete data', () => {
-  const r = { ...red, verified: true, reason: 'kontinuitas' };
-  assert.equal(assess(r, data).status, 'Alasan terdokumentasi');
-  assert.equal(assess({ ...r, evidence: false }, data).category, 'orange');
-});
-test('references and geometry are restricted to the city dataset', () => {
-  const ids = new Set(data.facilities.map(f => f.id));
-  assert.equal(ids.size, 10);
-  assert.equal(ids.has('RS-S05'), false);
-  assert.equal(ids.has('RS-S06'), false);
-  for (const r of data.cases) {
-    assert.ok(ids.has(r.from) && ids.has(r.to));
-    assert.ok(Object.keys(r.capacities).every(id => ids.has(id)));
-  }
-  assert.equal(data.routes.length, 24);
-  data.routes.forEach(r => { assert.ok(r.geometry?.coordinates.length! > 1); assert.ok(r.minutes! > 0); });
-});
-test('14 unique route representative cases are distinct and map to valid Dijkstra geometry', () => {
-  const seen = new Set<string>();
-  const representativeCases: typeof data.cases = [];
-  for (const r of data.cases) {
-    const routeKey = `${r.from}->${r.to}`;
-    if (!seen.has(routeKey)) {
-      seen.add(routeKey);
-      representativeCases.push(r);
-    }
-  }
-  assert.equal(representativeCases.length, 14);
-  assert.equal(seen.size, 14);
-  const routePairs = representativeCases.map(r => `${r.from}->${r.to}`);
-  assert.equal(new Set(routePairs).size, 14);
-  for (const r of representativeCases) {
-    const route = data.routes.find(x => x.from === r.from && x.to === r.to);
-    assert.ok(route, `Missing route for ${r.from}->${r.to}`);
-    assert.ok(route.geometry && route.geometry.coordinates.length > 1, `Invalid geometry for ${r.from}->${r.to}`);
-  }
-});
-test('25 red priority cases are preserved and grouped into 4 distinct geographic routes', () => {
-  const redCases = data.cases.filter(r => assess(r, data).category === 'red');
-  assert.equal(redCases.length, 25);
-
-  const groups = new Map<string, typeof redCases>();
-  for (const r of redCases) {
-    const key = `${r.from} -> ${r.to}`;
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(r);
+    episodeToImages.get(epId)!.push(img);
   }
 
-  // Must have 4 distinct routes
-  assert.equal(groups.size, 4);
+  // Exactly 8 distinct episodes
+  assert.equal(episodeToImages.size, 8);
 
-  // Expected route counts based on verified synthetic showcase data
-  assert.equal(groups.get('FKTP-S05 -> RS-S01')?.length, 9);
-  assert.equal(groups.get('FKTP-S06 -> RS-S01')?.length, 8);
-  assert.equal(groups.get('FKTP-S04 -> RS-S01')?.length, 7);
-  assert.equal(groups.get('FKTP-S01 -> RS-S04')?.length, 1);
+  // Each episode has exactly 2 scenarios (A and B)
+  for (const [epId, imgs] of episodeToImages.entries()) {
+    assert.equal(imgs.length, 2, `Episode ${epId} does not have 2 images`);
+    const scenarios = imgs.map((i) => i.scenario).sort();
+    assert.deepEqual(scenarios, ['A', 'B'], `Episode ${epId} scenarios mismatch`);
 
-  // Sum of cases across all 4 groups must equal exactly 25
-  const sum = Array.from(groups.values()).reduce((acc, cases) => acc + cases.length, 0);
-  assert.equal(sum, 25);
-
-  // Every group must have valid corresponding Dijkstra route geometry
-  for (const [key, cases] of groups.entries()) {
-    const [from, to] = key.split(' -> ');
-    const route = data.routes.find(r => r.from === from && r.to === to);
-    assert.ok(route, `Route not found for ${key}`);
-    assert.ok(route.geometry && route.geometry.coordinates.length > 1, `Invalid geometry for ${key}`);
+    // Verify episode exists in master and is TINGGI_SIM
+    const ep = episodes.find((e) => String(e.id) === epId);
+    assert.ok(ep, `GeoAI episode ${epId} not found in master`);
+    assert.equal(ep!.cat, 'TINGGI_SIM', `GeoAI episode ${epId} is not TINGGI_SIM`);
+    assert.equal(ep!.hasGeoAI, true);
   }
 });
-test('all 1,080 cases remain distinct by id and accurately partitioned by category', () => {
-  const allIds = new Set(data.cases.map(c => c.id));
-  assert.equal(allIds.size, 1080);
 
-  const counts = { red: 0, orange: 0, green: 0 };
-  data.cases.forEach(r => counts[assess(r, data).category]++);
-  assert.equal(counts.red, 25);
-  assert.equal(counts.orange, 52);
-  assert.equal(counts.green, 1003);
-  assert.equal(counts.red + counts.orange + counts.green, 1080);
+test('6. Ten episodes with nearest alternative outside NTT are correctly flagged', () => {
+  const outsideAltEpisodes = episodes.filter((e) => e.altOutside);
+  assert.equal(outsideAltEpisodes.length, 10);
+  assert.equal(summary.totals.outsideAltEpisodes, 10);
+
+  const refIds = new Set(facilities.features.map((f: any) => f.properties.id));
+  for (const ep of outsideAltEpisodes) {
+    assert.ok(ep.altId, 'Outside alt episode missing altId');
+    assert.ok(!refIds.has(ep.altId!), `Alt ${ep.altId} unexpectedly found in NTT reference`);
+  }
+});
+
+test('7. Geographic boundaries cover the full NTT province and 21 districts', () => {
+  assert.equal(boundary.features.length, 1);
+  assert.equal(districts.features.length, 21);
+
+  const distNames = districts.features.map((f: any) => f.properties.name).sort();
+  assert.ok(distNames.includes('Sikka'));
+  assert.ok(distNames.includes('Kupang'));
+  assert.ok(distNames.includes('Manggarai'));
+  assert.ok(distNames.includes('TimorTengahSelatan'));
+  assert.ok(distNames.includes('Belu'));
+  assert.ok(distNames.includes('Ende'));
+  assert.ok(distNames.includes('FloresTimur'));
+});
+
+test('8. All 16 PNG images, 16 thumbnails, 16 overlays, and 8 latar exist on disk', () => {
+  const baseDir = path.resolve(__dirname, '..', 'public', 'geoai', 'ntt', 'v2');
+
+  for (const img of geoai.images) {
+    const fullImgPath = path.join(baseDir, img.image.replace('/geoai/ntt/v2/', ''));
+    const thumbPath = path.join(baseDir, img.thumbnail.replace('/geoai/ntt/v2/', ''));
+    const overlayPath = path.join(baseDir, img.overlay.replace('/geoai/ntt/v2/', ''));
+    const latarPath = path.join(baseDir, img.latar.replace('/geoai/ntt/v2/', ''));
+
+    assert.ok(fs.existsSync(fullImgPath), `Full image missing: ${fullImgPath}`);
+    assert.ok(fs.existsSync(thumbPath), `Thumbnail missing: ${thumbPath}`);
+    assert.ok(fs.existsSync(overlayPath), `Overlay missing: ${overlayPath}`);
+    assert.ok(fs.existsSync(latarPath), `Latar missing: ${latarPath}`);
+  }
 });

@@ -1,0 +1,1350 @@
+{
+  "version": "ntt-geoai-v2",
+  "count": 16,
+  "attribution": {
+    "sentinel": "Sentinel-2 cloudless — https://s2maps.eu by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024)",
+    "license": "CC BY-NC-SA 4.0 for non-commercial showcase",
+    "syntheticNote": "Peta indeks dan overlay analitis merupakan data sintetis untuk demonstrasi POC. Bukan deteksi bencana real-time."
+  },
+  "papers": [
+    {
+      "citation": "Kulk et al. (2023)",
+      "doi": "https://doi.org/10.3390/rs15215139",
+      "topic": "Flood mapping using MNDWI"
+    },
+    {
+      "citation": "Notti et al. (2023)",
+      "doi": "https://doi.org/10.5194/nhess-23-2625-2023",
+      "topic": "Landslide candidate mapping using dNDVI & slope"
+    },
+    {
+      "citation": "Picos et al. (2019)",
+      "doi": "https://doi.org/10.3390/f10111021",
+      "topic": "Burn scar mapping using dNBR"
+    }
+  ],
+  "images": [
+    {
+      "number": 1,
+      "package": "NTT-01",
+      "region": "Sikka",
+      "episode": "290411124Y000018",
+      "kind": "banjir",
+      "mode": "dekat_proksi",
+      "title": "Kandidat genangan",
+      "scenario": "A",
+      "image": "/geoai/ntt/v2/gambar/01_NTT-01_banjir_A.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/01_NTT-01_banjir_A.png",
+      "overlay": "/geoai/ntt/v2/overlay/01_NTT-01_banjir_A.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-01.png",
+      "corners": [
+        [
+          121.7701358,
+          -8.6741207
+        ],
+        [
+          122.0523358,
+          -8.6741207
+        ],
+        [
+          122.0523358,
+          -8.8780494
+        ],
+        [
+          121.7701358,
+          -8.8780494
+        ]
+      ],
+      "boundsWgs84": [
+        121.7701358,
+        -8.8780494,
+        122.0523358,
+        -8.6741207
+      ],
+      "bounds3857": [
+        13555389.511360059,
+        -992278.667789811,
+        13586803.875005549,
+        -969308.4850922297
+      ],
+      "index": "MNDWI",
+      "rule": "MNDWI T1 > 0,15; air T0 dikeluarkan",
+      "formula": "(B03 - B11) / (B03 + B11)",
+      "paper": {
+        "short": "Kulk et al. (2023), Fig. 6",
+        "url": "https://doi.org/10.3390/rs15215139",
+        "title": "Using Multi-Spectral Remote Sensing for Flood Mapping: A Case Study in Lake Vembanad, India"
+      },
+      "candidatePixels": 20676,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": true,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "3427a28104dd1e343ef045875f1d0a153c87f541d4469f3c018090b351aef20a"
+    },
+    {
+      "number": 2,
+      "package": "NTT-01",
+      "region": "Sikka",
+      "episode": "290411124Y000018",
+      "kind": "banjir",
+      "mode": "di_luar_proksi",
+      "title": "Kandidat genangan",
+      "scenario": "B",
+      "image": "/geoai/ntt/v2/gambar/02_NTT-01_banjir_B.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/02_NTT-01_banjir_B.png",
+      "overlay": "/geoai/ntt/v2/overlay/02_NTT-01_banjir_B.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-01.png",
+      "corners": [
+        [
+          121.7701358,
+          -8.6741207
+        ],
+        [
+          122.0523358,
+          -8.6741207
+        ],
+        [
+          122.0523358,
+          -8.8780494
+        ],
+        [
+          121.7701358,
+          -8.8780494
+        ]
+      ],
+      "boundsWgs84": [
+        121.7701358,
+        -8.8780494,
+        122.0523358,
+        -8.6741207
+      ],
+      "bounds3857": [
+        13555389.511360059,
+        -992278.667789811,
+        13586803.875005549,
+        -969308.4850922297
+      ],
+      "index": "MNDWI",
+      "rule": "MNDWI T1 > 0,15; air T0 dikeluarkan",
+      "formula": "(B03 - B11) / (B03 + B11)",
+      "paper": {
+        "short": "Kulk et al. (2023), Fig. 6",
+        "url": "https://doi.org/10.3390/rs15215139",
+        "title": "Using Multi-Spectral Remote Sensing for Flood Mapping: A Case Study in Lake Vembanad, India"
+      },
+      "candidatePixels": 13798,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": false,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "e5a49e0e1749f2f5b39d7340594af846e75fb680a46b63fcc7b6ec2209641da9"
+    },
+    {
+      "number": 3,
+      "package": "NTT-03",
+      "region": "Kupang",
+      "episode": "177250424P000119",
+      "kind": "banjir",
+      "mode": "dekat_proksi",
+      "title": "Kandidat genangan",
+      "scenario": "A",
+      "image": "/geoai/ntt/v2/gambar/03_NTT-03_banjir_A.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/03_NTT-03_banjir_A.png",
+      "overlay": "/geoai/ntt/v2/overlay/03_NTT-03_banjir_A.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-03.png",
+      "corners": [
+        [
+          123.6021192,
+          -10.051491
+        ],
+        [
+          123.9332628,
+          -10.051491
+        ],
+        [
+          123.9332628,
+          -10.2898181
+        ],
+        [
+          123.6021192,
+          -10.2898181
+        ]
+      ],
+      "boundsWgs84": [
+        123.6021192,
+        -10.2898181,
+        123.9332628,
+        -10.051491
+      ],
+      "bounds3857": [
+        13759324.97569956,
+        -1151664.8395275758,
+        13796187.704216195,
+        -1124710.8124362133
+      ],
+      "index": "MNDWI",
+      "rule": "MNDWI T1 > 0,15; air T0 dikeluarkan",
+      "formula": "(B03 - B11) / (B03 + B11)",
+      "paper": {
+        "short": "Kulk et al. (2023), Fig. 6",
+        "url": "https://doi.org/10.3390/rs15215139",
+        "title": "Using Multi-Spectral Remote Sensing for Flood Mapping: A Case Study in Lake Vembanad, India"
+      },
+      "candidatePixels": 2749,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": true,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "2887c2014ce0a42923cf95d2bdae0a151b3e07dfb3a181b835e751ded8ea45de"
+    },
+    {
+      "number": 4,
+      "package": "NTT-03",
+      "region": "Kupang",
+      "episode": "177250424P000119",
+      "kind": "banjir",
+      "mode": "di_luar_proksi",
+      "title": "Kandidat genangan",
+      "scenario": "B",
+      "image": "/geoai/ntt/v2/gambar/04_NTT-03_banjir_B.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/04_NTT-03_banjir_B.png",
+      "overlay": "/geoai/ntt/v2/overlay/04_NTT-03_banjir_B.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-03.png",
+      "corners": [
+        [
+          123.6021192,
+          -10.051491
+        ],
+        [
+          123.9332628,
+          -10.051491
+        ],
+        [
+          123.9332628,
+          -10.2898181
+        ],
+        [
+          123.6021192,
+          -10.2898181
+        ]
+      ],
+      "boundsWgs84": [
+        123.6021192,
+        -10.2898181,
+        123.9332628,
+        -10.051491
+      ],
+      "bounds3857": [
+        13759324.97569956,
+        -1151664.8395275758,
+        13796187.704216195,
+        -1124710.8124362133
+      ],
+      "index": "MNDWI",
+      "rule": "MNDWI T1 > 0,15; air T0 dikeluarkan",
+      "formula": "(B03 - B11) / (B03 + B11)",
+      "paper": {
+        "short": "Kulk et al. (2023), Fig. 6",
+        "url": "https://doi.org/10.3390/rs15215139",
+        "title": "Using Multi-Spectral Remote Sensing for Flood Mapping: A Case Study in Lake Vembanad, India"
+      },
+      "candidatePixels": 2169,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": false,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "b4d8bb92254375e13c5ff57c6e6671ee1cbd2ec1884e067804525926c719f71c"
+    },
+    {
+      "number": 5,
+      "package": "NTT-04",
+      "region": "Manggarai",
+      "episode": "496481024Y000339",
+      "kind": "longsor",
+      "mode": "dekat_proksi",
+      "title": "Kandidat longsor",
+      "scenario": "A",
+      "image": "/geoai/ntt/v2/gambar/05_NTT-04_longsor_A.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/05_NTT-04_longsor_A.png",
+      "overlay": "/geoai/ntt/v2/overlay/05_NTT-04_longsor_A.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-04.png",
+      "corners": [
+        [
+          120.2977914,
+          -8.3148987
+        ],
+        [
+          120.6560595,
+          -8.3148987
+        ],
+        [
+          120.6560595,
+          -8.574024
+        ],
+        [
+          120.2977914,
+          -8.574024
+        ]
+      ],
+      "boundsWgs84": [
+        120.2977914,
+        -8.574024,
+        120.6560595,
+        -8.3148987
+      ],
+      "bounds3857": [
+        13391488.885930348,
+        -958038.3506435989,
+        13431371.10883972,
+        -928876.4692522648
+      ],
+      "index": "NDVI",
+      "rule": "dNDVI < -0,15; lereng sintetis > 15°",
+      "formula": "dNDVI = NDVI T1 - NDVI T0",
+      "paper": {
+        "short": "Notti et al. (2023), Fig. 5 & 9",
+        "url": "https://doi.org/10.5194/nhess-23-2625-2023",
+        "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
+      },
+      "candidatePixels": 4164,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": true,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "b15c0ae9d8a6bc8f07b7feed50846bdd1ad0b1e691b75fc95534bd6845086010"
+    },
+    {
+      "number": 6,
+      "package": "NTT-04",
+      "region": "Manggarai",
+      "episode": "496481024Y000339",
+      "kind": "longsor",
+      "mode": "di_luar_proksi",
+      "title": "Kandidat longsor",
+      "scenario": "B",
+      "image": "/geoai/ntt/v2/gambar/06_NTT-04_longsor_B.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/06_NTT-04_longsor_B.png",
+      "overlay": "/geoai/ntt/v2/overlay/06_NTT-04_longsor_B.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-04.png",
+      "corners": [
+        [
+          120.2977914,
+          -8.3148987
+        ],
+        [
+          120.6560595,
+          -8.3148987
+        ],
+        [
+          120.6560595,
+          -8.574024
+        ],
+        [
+          120.2977914,
+          -8.574024
+        ]
+      ],
+      "boundsWgs84": [
+        120.2977914,
+        -8.574024,
+        120.6560595,
+        -8.3148987
+      ],
+      "bounds3857": [
+        13391488.885930348,
+        -958038.3506435989,
+        13431371.10883972,
+        -928876.4692522648
+      ],
+      "index": "NDVI",
+      "rule": "dNDVI < -0,15; lereng sintetis > 15°",
+      "formula": "dNDVI = NDVI T1 - NDVI T0",
+      "paper": {
+        "short": "Notti et al. (2023), Fig. 5 & 9",
+        "url": "https://doi.org/10.5194/nhess-23-2625-2023",
+        "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
+      },
+      "candidatePixels": 4461,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": false,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "921ce46b9306b30e53bef750be72657c957b589344350914908f203bd7300052"
+    },
+    {
+      "number": 7,
+      "package": "NTT-06",
+      "region": "Manggarai Timur",
+      "episode": "192850524Y000219",
+      "kind": "longsor",
+      "mode": "dekat_proksi",
+      "title": "Kandidat longsor",
+      "scenario": "A",
+      "image": "/geoai/ntt/v2/gambar/07_NTT-06_longsor_A.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/07_NTT-06_longsor_A.png",
+      "overlay": "/geoai/ntt/v2/overlay/07_NTT-06_longsor_A.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-06.png",
+      "corners": [
+        [
+          120.4317362,
+          -8.5995912
+        ],
+        [
+          120.8022661,
+          -8.5995912
+        ],
+        [
+          120.8022661,
+          -8.867381
+        ],
+        [
+          120.4317362,
+          -8.867381
+        ]
+      ],
+      "boundsWgs84": [
+        120.4317362,
+        -8.867381,
+        120.8022661,
+        -8.5995912
+      ],
+      "bounds3857": [
+        13406399.554642646,
+        -991076.6862338765,
+        13447646.746670803,
+        -960916.7394228878
+      ],
+      "index": "NDVI",
+      "rule": "dNDVI < -0,15; lereng sintetis > 15°",
+      "formula": "dNDVI = NDVI T1 - NDVI T0",
+      "paper": {
+        "short": "Notti et al. (2023), Fig. 5 & 9",
+        "url": "https://doi.org/10.5194/nhess-23-2625-2023",
+        "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
+      },
+      "candidatePixels": 2836,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": true,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "428a4444779b7fc59ae0ce535634197c92297c59f35754e844ac6a9515b837c3"
+    },
+    {
+      "number": 8,
+      "package": "NTT-06",
+      "region": "Manggarai Timur",
+      "episode": "192850524Y000219",
+      "kind": "longsor",
+      "mode": "di_luar_proksi",
+      "title": "Kandidat longsor",
+      "scenario": "B",
+      "image": "/geoai/ntt/v2/gambar/08_NTT-06_longsor_B.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/08_NTT-06_longsor_B.png",
+      "overlay": "/geoai/ntt/v2/overlay/08_NTT-06_longsor_B.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-06.png",
+      "corners": [
+        [
+          120.4317362,
+          -8.5995912
+        ],
+        [
+          120.8022661,
+          -8.5995912
+        ],
+        [
+          120.8022661,
+          -8.867381
+        ],
+        [
+          120.4317362,
+          -8.867381
+        ]
+      ],
+      "boundsWgs84": [
+        120.4317362,
+        -8.867381,
+        120.8022661,
+        -8.5995912
+      ],
+      "bounds3857": [
+        13406399.554642646,
+        -991076.6862338765,
+        13447646.746670803,
+        -960916.7394228878
+      ],
+      "index": "NDVI",
+      "rule": "dNDVI < -0,15; lereng sintetis > 15°",
+      "formula": "dNDVI = NDVI T1 - NDVI T0",
+      "paper": {
+        "short": "Notti et al. (2023), Fig. 5 & 9",
+        "url": "https://doi.org/10.5194/nhess-23-2625-2023",
+        "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
+      },
+      "candidatePixels": 4325,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": false,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "7db32fb45fbb049d64cdc1244a80753977c7add95a1e6cdd8cabb0add637e0e9"
+    },
+    {
+      "number": 9,
+      "package": "NTT-02",
+      "region": "Timor Tengah Selatan",
+      "episode": "23120624P000056",
+      "kind": "kebakaran",
+      "mode": "dekat_proksi",
+      "title": "Bekas kebakaran",
+      "scenario": "A",
+      "image": "/geoai/ntt/v2/gambar/09_NTT-02_kebakaran_A.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/09_NTT-02_kebakaran_A.png",
+      "overlay": "/geoai/ntt/v2/overlay/09_NTT-02_kebakaran_A.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-02.png",
+      "corners": [
+        [
+          124.0667587,
+          -9.8204813
+        ],
+        [
+          124.3311234,
+          -9.8204813
+        ],
+        [
+          124.3311234,
+          -10.0108972
+        ],
+        [
+          124.0667587,
+          -10.0108972
+        ]
+      ],
+      "boundsWgs84": [
+        124.0667587,
+        -10.0108972,
+        124.3311234,
+        -9.8204813
+      ],
+      "bounds3857": [
+        13811048.40002136,
+        -1120121.7747049727,
+        13840477.341908544,
+        -1098603.3323970619
+      ],
+      "index": "NBR",
+      "rule": "dNBR > 0,10; kelas perubahan bertingkat",
+      "formula": "dNBR = NBR T0 - NBR T1",
+      "paper": {
+        "short": "Picos et al. (2019), Fig. 2",
+        "url": "https://doi.org/10.3390/f10111021",
+        "title": "Event-Based Integrated Assessment of Environmental Variables and Wildfire Severity through Sentinel-2 Data"
+      },
+      "candidatePixels": 26660,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": true,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "26ef42c7911772251759152016cd6c68fe723e58f08329c5bdc52f3532296186"
+    },
+    {
+      "number": 10,
+      "package": "NTT-02",
+      "region": "Timor Tengah Selatan",
+      "episode": "23120624P000056",
+      "kind": "kebakaran",
+      "mode": "di_luar_proksi",
+      "title": "Bekas kebakaran",
+      "scenario": "B",
+      "image": "/geoai/ntt/v2/gambar/10_NTT-02_kebakaran_B.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/10_NTT-02_kebakaran_B.png",
+      "overlay": "/geoai/ntt/v2/overlay/10_NTT-02_kebakaran_B.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-02.png",
+      "corners": [
+        [
+          124.0667587,
+          -9.8204813
+        ],
+        [
+          124.3311234,
+          -9.8204813
+        ],
+        [
+          124.3311234,
+          -10.0108972
+        ],
+        [
+          124.0667587,
+          -10.0108972
+        ]
+      ],
+      "boundsWgs84": [
+        124.0667587,
+        -10.0108972,
+        124.3311234,
+        -9.8204813
+      ],
+      "bounds3857": [
+        13811048.40002136,
+        -1120121.7747049727,
+        13840477.341908544,
+        -1098603.3323970619
+      ],
+      "index": "NBR",
+      "rule": "dNBR > 0,10; kelas perubahan bertingkat",
+      "formula": "dNBR = NBR T0 - NBR T1",
+      "paper": {
+        "short": "Picos et al. (2019), Fig. 2",
+        "url": "https://doi.org/10.3390/f10111021",
+        "title": "Event-Based Integrated Assessment of Environmental Variables and Wildfire Severity through Sentinel-2 Data"
+      },
+      "candidatePixels": 24289,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": false,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "411d035e287f4454e93abf8a763de0b549f601f62da53807706ff2253c6b81c6"
+    },
+    {
+      "number": 11,
+      "package": "NTT-07",
+      "region": "Belu",
+      "episode": "42640724P000004",
+      "kind": "kebakaran",
+      "mode": "dekat_proksi",
+      "title": "Bekas kebakaran",
+      "scenario": "A",
+      "image": "/geoai/ntt/v2/gambar/11_NTT-07_kebakaran_A.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/11_NTT-07_kebakaran_A.png",
+      "overlay": "/geoai/ntt/v2/overlay/11_NTT-07_kebakaran_A.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-07.png",
+      "corners": [
+        [
+          124.8125228,
+          -9.2616451
+        ],
+        [
+          125.0985895,
+          -9.2616451
+        ],
+        [
+          125.0985895,
+          -9.4680292
+        ],
+        [
+          124.8125228,
+          -9.4680292
+        ]
+      ],
+      "boundsWgs84": [
+        124.8125228,
+        -9.4680292,
+        125.0985895,
+        -9.2616451
+      ],
+      "bounds3857": [
+        13894066.485441044,
+        -1058806.0157946313,
+        13925911.287419546,
+        -1035521.0965879498
+      ],
+      "index": "NBR",
+      "rule": "dNBR > 0,10; kelas perubahan bertingkat",
+      "formula": "dNBR = NBR T0 - NBR T1",
+      "paper": {
+        "short": "Picos et al. (2019), Fig. 2",
+        "url": "https://doi.org/10.3390/f10111021",
+        "title": "Event-Based Integrated Assessment of Environmental Variables and Wildfire Severity through Sentinel-2 Data"
+      },
+      "candidatePixels": 24331,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": true,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "93386d0d0df71a0b0894e95b5c20a5565c5a76d6464ca3e246f4c4d4e7012c13"
+    },
+    {
+      "number": 12,
+      "package": "NTT-07",
+      "region": "Belu",
+      "episode": "42640724P000004",
+      "kind": "kebakaran",
+      "mode": "di_luar_proksi",
+      "title": "Bekas kebakaran",
+      "scenario": "B",
+      "image": "/geoai/ntt/v2/gambar/12_NTT-07_kebakaran_B.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/12_NTT-07_kebakaran_B.png",
+      "overlay": "/geoai/ntt/v2/overlay/12_NTT-07_kebakaran_B.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-07.png",
+      "corners": [
+        [
+          124.8125228,
+          -9.2616451
+        ],
+        [
+          125.0985895,
+          -9.2616451
+        ],
+        [
+          125.0985895,
+          -9.4680292
+        ],
+        [
+          124.8125228,
+          -9.4680292
+        ]
+      ],
+      "boundsWgs84": [
+        124.8125228,
+        -9.4680292,
+        125.0985895,
+        -9.2616451
+      ],
+      "bounds3857": [
+        13894066.485441044,
+        -1058806.0157946313,
+        13925911.287419546,
+        -1035521.0965879498
+      ],
+      "index": "NBR",
+      "rule": "dNBR > 0,10; kelas perubahan bertingkat",
+      "formula": "dNBR = NBR T0 - NBR T1",
+      "paper": {
+        "short": "Picos et al. (2019), Fig. 2",
+        "url": "https://doi.org/10.3390/f10111021",
+        "title": "Event-Based Integrated Assessment of Environmental Variables and Wildfire Severity through Sentinel-2 Data"
+      },
+      "candidatePixels": 8371,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": false,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "67e63c35fee43972b96a4f46d3199b5efdaeb5162fb245714129d86634dcf608"
+    },
+    {
+      "number": 13,
+      "package": "NTT-05",
+      "region": "Ende",
+      "episode": "24181024Y000034",
+      "kind": "pembanding",
+      "mode": "stabil",
+      "title": "Tanpa perubahan berarti",
+      "scenario": "A",
+      "image": "/geoai/ntt/v2/gambar/13_NTT-05_pembanding_A.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/13_NTT-05_pembanding_A.png",
+      "overlay": "/geoai/ntt/v2/overlay/13_NTT-05_pembanding_A.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-05.png",
+      "corners": [
+        [
+          121.5924638,
+          -8.4550544
+        ],
+        [
+          121.9605185,
+          -8.4550544
+        ],
+        [
+          121.9605185,
+          -8.7211582
+        ],
+        [
+          121.5924638,
+          -8.7211582
+        ]
+      ],
+      "boundsWgs84": [
+        121.5924638,
+        -8.7211582,
+        121.9605185,
+        -8.4550544
+      ],
+      "bounds3857": [
+        13535611.154687518,
+        -974605.591096327,
+        13576582.81640192,
+        -944647.1120507569
+      ],
+      "index": "NDVI",
+      "rule": "Area tanpa data tidak diberi kelas aman",
+      "formula": "NDVI = (B08 - B04) / (B08 + B04)",
+      "paper": {
+        "short": "Notti et al. (2023), Fig. 5 & 9",
+        "url": "https://doi.org/10.5194/nhess-23-2625-2023",
+        "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
+      },
+      "candidatePixels": 0,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": false,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "00990f6c91ea2592d3fdd045023df126b8cca17ef5512d87f3a10a38b3b58351"
+    },
+    {
+      "number": 14,
+      "package": "NTT-05",
+      "region": "Ende",
+      "episode": "24181024Y000034",
+      "kind": "pembanding",
+      "mode": "tanpa_data",
+      "title": "Bukti belum cukup",
+      "scenario": "B",
+      "image": "/geoai/ntt/v2/gambar/14_NTT-05_pembanding_B.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/14_NTT-05_pembanding_B.png",
+      "overlay": "/geoai/ntt/v2/overlay/14_NTT-05_pembanding_B.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-05.png",
+      "corners": [
+        [
+          121.5924638,
+          -8.4550544
+        ],
+        [
+          121.9605185,
+          -8.4550544
+        ],
+        [
+          121.9605185,
+          -8.7211582
+        ],
+        [
+          121.5924638,
+          -8.7211582
+        ]
+      ],
+      "boundsWgs84": [
+        121.5924638,
+        -8.7211582,
+        121.9605185,
+        -8.4550544
+      ],
+      "bounds3857": [
+        13535611.154687518,
+        -974605.591096327,
+        13576582.81640192,
+        -944647.1120507569
+      ],
+      "index": "NDVI",
+      "rule": "Area tanpa data tidak diberi kelas aman",
+      "formula": "NDVI = (B08 - B04) / (B08 + B04)",
+      "paper": {
+        "short": "Notti et al. (2023), Fig. 5 & 9",
+        "url": "https://doi.org/10.5194/nhess-23-2625-2023",
+        "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
+      },
+      "candidatePixels": 0,
+      "validFractionLand": 0.79,
+      "nearProxyIntersection": false,
+      "qualityGapNearProxy": true,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "64bc26be0f1ddec796f7c80a469a597eb15c4a01f79825cd0264008da8418a41"
+    },
+    {
+      "number": 15,
+      "package": "NTT-08",
+      "region": "Flores Timur",
+      "episode": "23670224P000184",
+      "kind": "pembanding",
+      "mode": "stabil",
+      "title": "Tanpa perubahan berarti",
+      "scenario": "A",
+      "image": "/geoai/ntt/v2/gambar/15_NTT-08_pembanding_A.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/15_NTT-08_pembanding_A.png",
+      "overlay": "/geoai/ntt/v2/overlay/15_NTT-08_pembanding_A.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-08.png",
+      "corners": [
+        [
+          122.7503747,
+          -8.2751498
+        ],
+        [
+          123.0438273,
+          -8.2751498
+        ],
+        [
+          123.0438273,
+          -8.4874305
+        ],
+        [
+          122.7503747,
+          -8.4874305
+        ]
+      ],
+      "boundsWgs84": [
+        122.7503747,
+        -8.4874305,
+        123.0438273,
+        -8.2751498
+      ],
+      "bounds3857": [
+        13664509.209465703,
+        -948290.964685663,
+        13697176.20446041,
+        -924404.8579455317
+      ],
+      "index": "NDVI",
+      "rule": "Area tanpa data tidak diberi kelas aman",
+      "formula": "NDVI = (B08 - B04) / (B08 + B04)",
+      "paper": {
+        "short": "Notti et al. (2023), Fig. 5 & 9",
+        "url": "https://doi.org/10.5194/nhess-23-2625-2023",
+        "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
+      },
+      "candidatePixels": 0,
+      "validFractionLand": 1.0,
+      "nearProxyIntersection": false,
+      "qualityGapNearProxy": false,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "441988b2f6531a37ca9fc46dcf0a8fd2246e804947683d87f884eeaf1bb45d08"
+    },
+    {
+      "number": 16,
+      "package": "NTT-08",
+      "region": "Flores Timur",
+      "episode": "23670224P000184",
+      "kind": "pembanding",
+      "mode": "tanpa_data",
+      "title": "Bukti belum cukup",
+      "scenario": "B",
+      "image": "/geoai/ntt/v2/gambar/16_NTT-08_pembanding_B.png",
+      "thumbnail": "/geoai/ntt/v2/thumbnail/16_NTT-08_pembanding_B.png",
+      "overlay": "/geoai/ntt/v2/overlay/16_NTT-08_pembanding_B.png",
+      "latar": "/geoai/ntt/v2/latar/NTT-08.png",
+      "corners": [
+        [
+          122.7503747,
+          -8.2751498
+        ],
+        [
+          123.0438273,
+          -8.2751498
+        ],
+        [
+          123.0438273,
+          -8.4874305
+        ],
+        [
+          122.7503747,
+          -8.4874305
+        ]
+      ],
+      "boundsWgs84": [
+        122.7503747,
+        -8.4874305,
+        123.0438273,
+        -8.2751498
+      ],
+      "bounds3857": [
+        13664509.209465703,
+        -948290.964685663,
+        13697176.20446041,
+        -924404.8579455317
+      ],
+      "index": "NDVI",
+      "rule": "Area tanpa data tidak diberi kelas aman",
+      "formula": "NDVI = (B08 - B04) / (B08 + B04)",
+      "paper": {
+        "short": "Notti et al. (2023), Fig. 5 & 9",
+        "url": "https://doi.org/10.5194/nhess-23-2625-2023",
+        "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
+      },
+      "candidatePixels": 0,
+      "validFractionLand": 0.7371,
+      "nearProxyIntersection": false,
+      "qualityGapNearProxy": true,
+      "noRealDetection": true,
+      "nominalGridM": 20,
+      "sha256": "633422d2c593124e010acc6882f6b0c5801eb18588eb8f03d08fbb4938cde484"
+    }
+  ],
+  "cases": [
+    {
+      "package": "NTT-01",
+      "region": "Sikka",
+      "episode": "290411124Y000018",
+      "category": "TINGGI_SIM",
+      "facilityIds": {
+        "asal": "REF-cb8e7cf9410bb9",
+        "tujuan": "REF-7e5c40a92852c6",
+        "alternatif": "REF-33934dad2a5b3e"
+      },
+      "facilityNames": {
+        "asal": "Puskesmas Wolorea",
+        "tujuan": "Faskes tanpa nama REF-7e5c40a92852c6"
+      },
+      "pointsWgs84": {
+        "asal": [
+          121.9535128,
+          -8.7142973
+        ],
+        "tujuan": [
+          121.8450057,
+          -8.8378905
+        ],
+        "alternatif": [
+          121.9774659,
+          -8.7177042
+        ]
+      },
+      "corners": [
+        [
+          121.7701358,
+          -8.6741207
+        ],
+        [
+          122.0523358,
+          -8.6741207
+        ],
+        [
+          122.0523358,
+          -8.8780494
+        ],
+        [
+          121.7701358,
+          -8.8780494
+        ]
+      ]
+    },
+    {
+      "package": "NTT-02",
+      "region": "Timor Tengah Selatan",
+      "episode": "23120624P000056",
+      "category": "TINGGI_SIM",
+      "facilityIds": {
+        "asal": "REF-7f2ee80b7ae33f",
+        "tujuan": "REF-1323109ef81781",
+        "alternatif": "REF-2a3e074e949aeb"
+      },
+      "facilityNames": {
+        "asal": "Lembaga Rumah Bersalin Kasih Bunda",
+        "tujuan": "Faskes tanpa nama REF-1323109ef81781"
+      },
+      "pointsWgs84": {
+        "asal": [
+          124.2533168,
+          -9.8579962
+        ],
+        "tujuan": [
+          124.1261098,
+          -9.9733998
+        ],
+        "alternatif": [
+          124.2717722,
+          -9.8650801
+        ]
+      },
+      "corners": [
+        [
+          124.0667587,
+          -9.8204813
+        ],
+        [
+          124.3311234,
+          -9.8204813
+        ],
+        [
+          124.3311234,
+          -10.0108972
+        ],
+        [
+          124.0667587,
+          -10.0108972
+        ]
+      ]
+    },
+    {
+      "package": "NTT-03",
+      "region": "Kupang",
+      "episode": "177250424P000119",
+      "category": "TINGGI_SIM",
+      "facilityIds": {
+        "asal": "REF-e63386fe7ea308",
+        "tujuan": "REF-64ceece5268390",
+        "alternatif": "REF-b96b1c2c0c7486"
+      },
+      "facilityNames": {
+        "asal": "Puskesmas Naibonat",
+        "tujuan": "Faskes tanpa nama REF-64ceece5268390"
+      },
+      "pointsWgs84": {
+        "asal": [
+          123.8400124,
+          -10.0984482
+        ],
+        "tujuan": [
+          123.6953696,
+          -10.242889
+        ],
+        "alternatif": [
+          123.804042,
+          -10.1129785
+        ]
+      },
+      "corners": [
+        [
+          123.6021192,
+          -10.051491
+        ],
+        [
+          123.9332628,
+          -10.051491
+        ],
+        [
+          123.9332628,
+          -10.2898181
+        ],
+        [
+          123.6021192,
+          -10.2898181
+        ]
+      ]
+    },
+    {
+      "package": "NTT-04",
+      "region": "Manggarai",
+      "episode": "496481024Y000339",
+      "category": "TINGGI_SIM",
+      "facilityIds": {
+        "asal": "REF-543c231a3c0533",
+        "tujuan": "REF-c77656afc6e0ea",
+        "alternatif": "REF-399f0f9bd1159e"
+      },
+      "facilityNames": {
+        "asal": "POS POSIANDU DSN MBR",
+        "tujuan": "Faskes tanpa nama REF-c77656afc6e0ea"
+      },
+      "pointsWgs84": {
+        "asal": [
+          120.450533,
+          -8.369952
+        ],
+        "tujuan": [
+          120.5205022,
+          -8.522998
+        ],
+        "alternatif": [
+          120.4333487,
+          -8.3659523
+        ]
+      },
+      "corners": [
+        [
+          120.2977914,
+          -8.3148987
+        ],
+        [
+          120.6560595,
+          -8.3148987
+        ],
+        [
+          120.6560595,
+          -8.574024
+        ],
+        [
+          120.2977914,
+          -8.574024
+        ]
+      ]
+    },
+    {
+      "package": "NTT-05",
+      "region": "Ende",
+      "episode": "24181024Y000034",
+      "category": "TINGGI_SIM",
+      "facilityIds": {
+        "asal": "REF-1e37d3782ddb63",
+        "tujuan": "REF-42346e648a777d",
+        "alternatif": "REF-35601ea7e1f778"
+      },
+      "facilityNames": {
+        "asal": "Puskesmas",
+        "tujuan": "Faskes tanpa nama REF-42346e648a777d"
+      },
+      "pointsWgs84": {
+        "asal": [
+          121.8453442,
+          -8.6687586
+        ],
+        "tujuan": [
+          121.7076381,
+          -8.5074835
+        ],
+        "alternatif": [
+          121.8196129,
+          -8.6323247
+        ]
+      },
+      "corners": [
+        [
+          121.5924638,
+          -8.4550544
+        ],
+        [
+          121.9605185,
+          -8.4550544
+        ],
+        [
+          121.9605185,
+          -8.7211582
+        ],
+        [
+          121.5924638,
+          -8.7211582
+        ]
+      ]
+    },
+    {
+      "package": "NTT-06",
+      "region": "Manggarai Timur",
+      "episode": "192850524Y000219",
+      "category": "TINGGI_SIM",
+      "facilityIds": {
+        "asal": "REF-69ef174a69a03b",
+        "tujuan": "REF-88c8f7f3a01d93",
+        "alternatif": "REF-35d70c7806df50"
+      },
+      "facilityNames": {
+        "asal": "Klinik Pratam Aveno Borong",
+        "tujuan": "Faskes tanpa nama REF-88c8f7f3a01d93"
+      },
+      "pointsWgs84": {
+        "asal": [
+          120.5760458,
+          -8.8110006
+        ],
+        "tujuan": [
+          120.6579565,
+          -8.6523529
+        ],
+        "alternatif": [
+          120.6066255,
+          -8.8146498
+        ]
+      },
+      "corners": [
+        [
+          120.4317362,
+          -8.5995912
+        ],
+        [
+          120.8022661,
+          -8.5995912
+        ],
+        [
+          120.8022661,
+          -8.867381
+        ],
+        [
+          120.4317362,
+          -8.867381
+        ]
+      ]
+    },
+    {
+      "package": "NTT-07",
+      "region": "Belu",
+      "episode": "42640724P000004",
+      "category": "TINGGI_SIM",
+      "facilityIds": {
+        "asal": "REF-391cd1b01810a1",
+        "tujuan": "REF-656489271622aa",
+        "alternatif": "REF-33695c87af3fe0"
+      },
+      "facilityNames": {
+        "asal": "Puskesmas Rafae",
+        "tujuan": "Faskes tanpa nama REF-656489271622aa"
+      },
+      "pointsWgs84": {
+        "asal": [
+          124.8688693,
+          -9.3319666
+        ],
+        "tujuan": [
+          125.0422431,
+          -9.3977353
+        ],
+        "alternatif": [
+          124.8718499,
+          -9.373312
+        ]
+      },
+      "corners": [
+        [
+          124.8125228,
+          -9.2616451
+        ],
+        [
+          125.0985895,
+          -9.2616451
+        ],
+        [
+          125.0985895,
+          -9.4680292
+        ],
+        [
+          124.8125228,
+          -9.4680292
+        ]
+      ]
+    },
+    {
+      "package": "NTT-08",
+      "region": "Flores Timur",
+      "episode": "23670224P000184",
+      "category": "TINGGI_SIM",
+      "facilityIds": {
+        "asal": "REF-b389a124a0f10c",
+        "tujuan": "REF-97f9acd55e8680",
+        "alternatif": "REF-a5a7d02e727e0b"
+      },
+      "facilityNames": {
+        "asal": "Puskesmas Lewolaga",
+        "tujuan": "Faskes tanpa nama REF-97f9acd55e8680"
+      },
+      "pointsWgs84": {
+        "asal": [
+          122.808176,
+          -8.4190966
+        ],
+        "tujuan": [
+          122.9860261,
+          -8.343509
+        ],
+        "alternatif": [
+          122.8245788,
+          -8.3895839
+        ]
+      },
+      "corners": [
+        [
+          122.7503747,
+          -8.2751498
+        ],
+        [
+          123.0438273,
+          -8.2751498
+        ],
+        [
+          123.0438273,
+          -8.4874305
+        ],
+        [
+          122.7503747,
+          -8.4874305
+        ]
+      ]
+    }
+  ]
+}

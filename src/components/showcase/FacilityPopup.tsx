@@ -1,43 +1,111 @@
-import { minutes, type Assessment, type Referral, type ShowcaseData } from '@/lib/showcase';
+'use client';
+import { formatMinutes, formatKm, type Episode, type ShowcaseData } from '@/lib/showcase';
 
-export type MapPoint = { kind: 'synthetic' | 'public'; id: string };
+export type MapPoint = {
+  id: string;
+  nama?: string;
+  peran?: string;
+  kelompok?: string;
+  kabkota?: string;
+  lon: number;
+  lat: number;
+  peranVerif?: boolean;
+  existVerif?: boolean;
+};
 
-// Geographic proximity is separate from road-network travel time.
-function distanceKm(a: { lon: number; lat: number }, b: { lon: number; lat: number }) {
-  const rad = Math.PI / 180;
-  const h = Math.sin((b.lat - a.lat) * rad / 2) ** 2 + Math.cos(a.lat * rad) * Math.cos(b.lat * rad) * Math.sin((b.lon - a.lon) * rad / 2) ** 2;
-  return 6371 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(Math.max(0, 1 - h)));
-}
+export default function FacilityPopup({
+  point,
+  data,
+  selected,
+  episodes,
+  onOpenPoint,
+}: {
+  point: MapPoint;
+  data: ShowcaseData;
+  selected: Episode | null;
+  episodes: Episode[];
+  onOpenPoint: (point: MapPoint) => void;
+}) {
+  const isOrigin = selected?.fromId === point.id;
+  const isDestination = selected?.toId === point.id;
+  const isAlternative = selected?.altId === point.id;
 
-export default function FacilityPopup({ point, data, selected, assessment, cases, onOpenPoint }: { point: MapPoint; data: ShowcaseData; selected: Referral | null; assessment: Assessment | null; cases: Referral[]; onOpenPoint: (point: MapPoint) => void }) {
-  const facility = point.kind === 'synthetic' ? data.facilities.find(f => f.id === point.id) : data.publicFacilities.find(f => f.id === point.id);
-  if (!facility) return null;
-  const synthetic = point.kind === 'synthetic' ? data.facilities.find(f => f.id === point.id)! : null;
-  const publicFacility = point.kind === 'public' ? data.publicFacilities.find(f => f.id === point.id)! : null;
-  const role = point.id === selected?.from ? 'Titik awal rujukan' : point.id === selected?.to ? 'RS tujuan rujukan' : assessment?.alternatives.some(f => f.id === point.id) ? 'RS alternatif layak' : synthetic?.kind === 'RS' ? 'RS pembanding' : 'FKTP lainnya';
-  const route = synthetic?.kind === 'RS' && selected ? data.routes.find(r => r.from === selected.from && r.to === point.id) : null;
-  const services = synthetic ? Object.entries(data.capabilities[point.id] ?? {}).filter(([, available]) => available).map(([name]) => name) : [];
-  const capacity = selected?.capacities[point.id];
-  const nearby = data.publicFacilities.filter(f => f.id !== point.id).map(f => ({ ...f, km: distanceKm(facility, f) })).filter(f => f.km <= 2).sort((a, b) => a.km - b.km || a.id.localeCompare(b.id)).slice(0, 5);
-  const osmUrl = publicFacility && /^(node|way|relation)\/\d+$/.test(point.id) ? `https://www.openstreetmap.org/${point.id}` : null;
-  return <section className="facility-popup" aria-label={`Informasi fasilitas ${publicFacility?.name ?? point.id}`}>
-    <span className="facility-popup-source">{synthetic ? `FASILITAS SINTETIS · ${synthetic.kind}` : 'FASILITAS PUBLIK · OPENSTREETMAP'}</span>
-    <h3>{publicFacility?.name ?? point.id}</h3>
-    {synthetic && <p className="facility-popup-role">{role}</p>}
-    <dl>
-      <div><dt>Koordinat</dt><dd>{facility.lat.toFixed(5)}, {facility.lon.toFixed(5)}</dd></div>
-      {synthetic && <div><dt>Kasus terkait</dt><dd>{cases.filter(r => r.from === point.id || r.to === point.id).length} sesuai filter aktif</dd></div>}
-      {synthetic?.kind === 'RS' && selected && <>
-        <div><dt>Dari {selected.from}</dt><dd>{minutes(route?.minutes ?? null)}{route?.km != null ? ` · ${route.km.toLocaleString('id-ID', { maximumFractionDigits: 1 })} km` : ''}</dd></div>
-        <div><dt>Layanan kasus</dt><dd>{selected.service} · {data.capabilities[point.id]?.[selected.service] ? 'sesuai' : 'tidak sesuai'}</dd></div>
-        <div><dt>Kapasitas kasus</dt><dd>{capacity === true ? 'Tersedia' : capacity === false ? 'Tidak tersedia' : 'Belum diketahui'}</dd></div>
-      </>}
-    </dl>
-    {services.length > 0 && <div className="facility-popup-services"><strong>Layanan dalam skenario</strong><p>{services.join(' · ')}</p></div>}
-    <p className="facility-popup-note">{synthetic ? `Data demo sintetis${selected ? ` · ${selected.id}` : ''}. Waktu memakai model Dijkstra; bukan lalu lintas langsung.` : 'Objek publik OSM. Layanan, jam operasional, kapasitas, dan kemitraan JKN belum tersedia dalam dataset ini.'}</p>
-    {osmUrl && <a className="facility-popup-link" href={osmUrl} target="_blank" rel="noopener noreferrer">Lihat sumber OpenStreetMap ↗</a>}
-    <div className="facility-popup-nearby"><strong>Fasilitas publik sekitar</strong><span>Dalam 2 km · jarak garis lurus</span>
-      {nearby.length ? nearby.map(f => <button key={f.id} type="button" onClick={() => onOpenPoint({ kind: 'public', id: f.id })}><span>{f.name}</span><small>{f.km.toLocaleString('id-ID', { maximumFractionDigits: 2 })} km ↗</small></button>) : <p>Belum ada objek publik dalam radius ini pada snapshot.</p>}
-    </div>
-  </section>;
+  let roleLabel = 'Fasilitas Referensi NTT';
+  if (isOrigin) {
+    roleLabel = '📍 Titik Asal Rujukan (FKTP)';
+  } else if (isDestination) {
+    roleLabel = '🏥 Fasilitas Tujuan Terpilih';
+  } else if (isAlternative) {
+    roleLabel = '🎯 Alternatif Layak Terdekat (Dalam Cakupan)';
+  } else if (point.peran === 'RS' || point.kelompok === 'RS') {
+    roleLabel = 'Rumah Sakit Rujukan';
+  } else if (point.peran === 'FKTP') {
+    roleLabel = 'Fasilitas Tingkat Pertama';
+  }
+
+  // Count related episodes
+  const relatedAsOrigin = episodes.filter((e) => e.fromId === point.id).length;
+  const relatedAsDestination = episodes.filter((e) => e.toId === point.id).length;
+
+  return (
+    <section className="facility-popup" aria-label={`Informasi fasilitas ${point.nama || point.id}`}>
+      <span className="facility-popup-source">KATALOG FASILITAS NTT · 879 REFERENSI</span>
+      <h3>{point.nama || point.id}</h3>
+      <p className="facility-popup-role">{roleLabel}</p>
+
+      <dl>
+        <div>
+          <dt>ID Fasilitas</dt>
+          <dd><code>{point.id}</code></dd>
+        </div>
+        <div>
+          <dt>Kabupaten / Kota</dt>
+          <dd>{point.kabkota || 'Wilayah NTT'}</dd>
+        </div>
+        <div>
+          <dt>Kelompok &amp; Peran</dt>
+          <dd>
+            {point.kelompok || 'UMUM'} · {point.peran || 'Faskes'}
+            {point.peranVerif ? ' (Peran terverifikasi)' : ''}
+          </dd>
+        </div>
+        <div>
+          <dt>Koordinat</dt>
+          <dd>
+            {point.lat.toFixed(5)}, {point.lon.toFixed(5)}
+          </dd>
+        </div>
+        <div>
+          <dt>Episode Terkait (Filter Aktif)</dt>
+          <dd>
+            {relatedAsOrigin} sebagai asal · {relatedAsDestination} sebagai tujuan
+          </dd>
+        </div>
+
+        {selected && (isDestination || isAlternative) && (
+          <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed #dbe5d8' }}>
+            <dt>Metrik Akses dari {selected.fromName}</dt>
+            <dd>
+              {isDestination && (
+                <>
+                  Waktu tempuh proksi: <strong>{formatMinutes(selected.timeMin)}</strong>
+                  {selected.distM != null && ` (${formatKm(selected.distM)})`}
+                </>
+              )}
+              {isAlternative && (
+                <>
+                  Waktu tempuh proksi: <strong>{formatMinutes(selected.altTimeMin)}</strong>
+                  {selected.diffMin != null && ` (Hemat ${formatMinutes(selected.diffMin)})`}
+                </>
+              )}
+            </dd>
+          </div>
+        )}
+      </dl>
+
+      <p className="facility-popup-note">
+        Katalog titik fasilitas NTT didasarkan pada dataset referensi faskes simulasi (879 titik). Jarak dan waktu menggunakan proksi akses geografis, bukan rute jalan langsung terverifikasi.
+      </p>
+    </section>
+  );
 }
