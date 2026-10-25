@@ -227,3 +227,15 @@ export const getReasonLabel = (reason: string | null | undefined): string => {
   if (!reason) return 'Tidak ada catatan khusus';
   return reasonLabels[reason] || reason.replace(/_/g, ' ');
 };
+
+
+export const formatFacilityName = (
+  name: string | null | undefined,
+  role: 'asal' | 'tujuan' | 'alternatif' = 'tujuan'
+): string => {
+  if (!name) return 'Faskes ' + role + ' — nama belum tersedia';
+  if (name.toLowerCase().includes('tanpa nama')) {
+    return 'Faskes ' + role + ' — nama belum tersedia';
+  }
+  return name;
+};
