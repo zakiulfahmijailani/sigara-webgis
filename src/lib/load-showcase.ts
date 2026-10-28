@@ -1,17 +1,19 @@
 import type { ShowcaseData } from './showcase';
+import { decodeShowcase } from './showcase-wire';
 
-// Share the snapshot across client-side navigation; failed requests remain retryable.
-let pending: Promise<ShowcaseData> | null = null;
-let loadedAt = 0;
-export function loadShowcase(): Promise<ShowcaseData> {
-  if (!pending || Date.now() - loadedAt > 300_000) {
-    loadedAt = Date.now();
-    pending = fetch('/api/showcase').then(async response => {
-      if (!response.ok) throw new Error('Snapshot unavailable');
-      const payload = await response.json();
-      if (!Array.isArray(payload.data?.episodes)) throw new Error('Invalid snapshot');
-      return payload.data as ShowcaseData;
-    }).catch(error => { pending = null; throw error; });
-  }
+const requests = new Map<string, { at: number; pending: Promise<ShowcaseData> }>();
+export function loadShowcase(episodeId?: string): Promise<ShowcaseData> {
+  const key = episodeId ?? 'overview';
+  const prior = requests.get(key);
+  if (prior && Date.now() - prior.at < 300_000) return prior.pending;
+  const params = new URLSearchParams({ compact: '1' });
+  if (episodeId !== undefined) params.set('episodeId', episodeId);
+  const pending = fetch(`/api/showcase?${params}`).then(async response => {
+    if (!response.ok) throw new Error('Data unavailable');
+    return decodeShowcase(await response.json());
+  }).catch(error => { requests.delete(key); throw error; });
+  requests.set(key, { at: Date.now(), pending });
+  // Bound detail cache during prolonged navigation.
+  if (requests.size > 20) requests.delete(requests.keys().next().value!);
   return pending;
 }

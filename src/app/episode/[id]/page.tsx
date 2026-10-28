@@ -18,9 +18,13 @@ function InvestigationLoader({ params }: PageProps) {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    loadShowcase().then(setData)
-      .catch(() => setError(true));
-  }, []);
+    let alive = true;
+    setData(null);
+    setError(false);
+    loadShowcase(episodeId).then(result => { if (alive) setData(result); })
+      .catch(() => { if (alive) setError(true); });
+    return () => { alive = false; };
+  }, [episodeId]);
 
   if (error) {
     return (

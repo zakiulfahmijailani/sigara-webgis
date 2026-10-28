@@ -1,0 +1,10 @@
+import { readFile } from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const { neon } = await import(process.env.SIGARA_NEON_MODULE || '@neondatabase/serverless');
+const sql=neon(process.env.DATABASE_URL);
+await sql.query(await readFile('scripts/migrations/002-ntt-master-view.sql','utf8'));
+const counts=(await sql`SELECT (SELECT count(*)::int FROM sigara.tabel_utama_rujukan_ntt_2024) rows,(SELECT count(*)::int FROM information_schema.columns WHERE table_schema='sigara' AND table_name='tabel_utama_rujukan_ntt_2024') columns`)[0];
+assert.deepEqual(counts,{rows:10776,columns:206});
+const permissions=(await sql`SELECT has_table_privilege('sigara_showcase_reader','sigara.ntt_master_rujukan','SELECT') AS raw_master_read,has_table_privilege('sigara_showcase_reader','sigara.ntt_source_files','SELECT') AS source_file_read,has_table_privilege('sigara_showcase_reader','sigara.ntt_episodes','INSERT') AS episode_write,has_table_privilege('sigara_showcase_reader','sigara.ntt_visits','SELECT') AS visit_read`)[0];
+assert.deepEqual(permissions,{raw_master_read:false,source_file_read:false,episode_write:false,visit_read:true});
+console.log(JSON.stringify({view:'sigara.tabel_utama_rujukan_ntt_2024',...counts,permissions}));

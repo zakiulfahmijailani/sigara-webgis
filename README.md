@@ -79,8 +79,10 @@ npm run dev         # Menjalankan server pengembang lokal di http://localhost:30
 ## 5. Konfigurasi API & Sumber Data
 
 - Endpoint `GET /api/showcase` melayani kontrak versi `ntt-showcase-v2`.
-- Jika `DATABASE_URL` tersedia, aplikasi mencoba memuat snapshot `ntt-showcase-v2` dari Neon Serverless Postgres. Jika tidak tersedia atau tidak cocok, aplikasi secara otomatis menggunakan snapshot lokal terverifikasi di `src/data/`.
+- Data aktif wajib dibaca dari Neon melalui `DATABASE_URL` milik role `sigara_showcase_reader`. Jika koneksi atau dataset belum tersedia, API mengembalikan 503 yang dapat dicoba ulang. Tidak ada fallback diam-diam ke berkas repository.
 - Endpoint `GET /api/showcase/visits?episodeId=...` memuat lini masa kunjungan saat tab kunjungan dibuka. Gambar GeoAI juga dimuat saat diperlukan; snapshot episode dan geometri dipakai bersama selama navigasi dalam aplikasi.
+
+Migrasi Neon NTT, tabel utama 206 kolom, pemeriksaan sumber, dan cara impor ulang: [docs/neon-ntt-storage.md](docs/neon-ntt-storage.md). Berkas `src/data/` dipertahankan sebagai input impor dan fixture verifikasi, bukan sumber runtime API. Halaman detail memakai `GET /api/showcase?episodeId=...&compact=1` agar hanya satu episode yang dimuat. Beranda memakai transport kolom JSON yang mempertahankan seluruh nilai sambil mengurangi ukuran respons.
 
 ## 6. Repositori & Publikasi
 
