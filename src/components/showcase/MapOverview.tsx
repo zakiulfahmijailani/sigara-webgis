@@ -54,23 +54,23 @@ export default function MapOverview() {
   const filtered = useMemo(() => filters.category === 'all' ? scoped : scoped.filter(ep => categoryFromMaster(ep.cat) === filters.category), [scoped, filters.category]);
   const listed = useMemo(() => {
     const ranks = { TINGGI_SIM: 0, SEDANG_SIM: 1, RENDAH_SIM: 2 };
-    return filtered.filter(ep => !filters.origin || ep.fromId === filters.origin).sort((a, b) => ranks[a.cat] - ranks[b.cat] || (b.diffMin ?? -Infinity) - (a.diffMin ?? -Infinity) || a.id.localeCompare(b.id));
-  }, [filtered, filters.origin]);
+    return filtered
+      .filter(ep => (!filters.origin || ep.fromId === filters.origin) && (!filters.line || `${ep.fromId}__${ep.toId}` === filters.line))
+      .sort((a, b) => ranks[a.cat] - ranks[b.cat] || (b.diffMin ?? -Infinity) - (a.diffMin ?? -Infinity) || a.id.localeCompare(b.id));
+  }, [filtered, filters.origin, filters.line]);
   const totalPages = Math.max(1, Math.ceil(listed.length / PAGE_SIZE));
   const rawPage = Number(params.get('page') || 1);
   const page = Number.isFinite(rawPage) ? Math.max(1, Math.min(totalPages, Math.floor(rawPage))) : 1;
   const pageItems = listed.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const originName = data?.episodes.find(ep => ep.fromId === filters.origin)?.fromName;
-  const narrowed = filters.query || filters.district !== 'all' || filters.month !== 'all' || filters.geoai || filters.category !== 'all' || filters.origin;
+  const narrowed = filters.query || filters.district !== 'all' || filters.month !== 'all' || filters.geoai || filters.category !== 'all' || filters.origin || filters.line;
 
   function selectOrigin(origin: string) {
     const matches = filtered.filter(ep => ep.fromId === origin);
     if (!matches.length) return;
-    if (matches.length === 1) router.push(investigationHref(matches[0].id, new URLSearchParams(window.location.search)));
-    else {
-      update({ origin, list: '1' });
-      requestAnimationFrame(() => listHeading.current?.focus({ preventScroll: true }));
-    }
+    // Keep user on the map even if 1 episode; focus camera and show journey line
+    update({ origin, list: '1', line: null });
+    requestAnimationFrame(() => listHeading.current?.focus({ preventScroll: true }));
   }
 
   return <div className="map-home">
@@ -84,47 +84,80 @@ export default function MapOverview() {
       {about && <section className="overview-notice" aria-label="Tentang penelaahan"><Info size={19} /><p>SIGARA membantu petugas menelaah rujukan. Kategori adalah indikasi simulasi pada episode; penetapan dan tindak lanjut tetap oleh petugas. Ilustrasi GeoAI menggunakan skenario sintetis. Rincian metode dan sumber tersedia pada setiap halaman episode.</p><button onClick={() => setAbout(false)} aria-label="Tutup informasi"><X size={18} /></button></section>}
       <section className="overview-toolbar" aria-label="Filter peta dan episode">
         <div className="overview-search-row">
-          <form className="overview-search" onSubmit={e => { e.preventDefault(); update({ q: query.trim(), origin: null, list: '1' }); }}>
+          <form className="overview-search" onSubmit={e => { e.preventDefault(); update({ q: query.trim(), origin: null, line: null, list: '1' }); }}>
             <Search size={18} aria-hidden="true" /><input aria-label="Cari ID episode atau fasilitas" placeholder="Cari ID episode atau nama fasilitas…" value={query} onChange={e => setQuery(e.target.value)} />
-            {query && <button type="button" aria-label="Hapus pencarian" onClick={() => { setQuery(''); update({ q: null, origin: null }); }}><X size={16} /></button>}
+            {query && <button type="button" aria-label="Hapus pencarian" onClick={() => { setQuery(''); update({ q: null, origin: null, line: null }); }}><X size={16} /></button>}
             <button type="submit" className="overview-search-submit">Cari</button>
           </form>
-          <label className="overview-district"><MapPin size={17} /><span className="sr-only">Kabupaten atau kota asal</span><select aria-label="Kabupaten atau kota asal" value={filters.district} onChange={e => update({ district: e.target.value === 'all' ? null : e.target.value, origin: null })}>
+          <label className="overview-district"><MapPin size={17} /><span className="sr-only">Kabupaten atau kota asal</span><select aria-label="Kabupaten atau kota asal" value={filters.district} onChange={e => update({ district: e.target.value === 'all' ? null : e.target.value, origin: null, line: null })}>
             <option value="all">Seluruh NTT · kabupaten asal</option>{data?.summary.districts.map(d => <option key={d} value={d}>{districtLabel(d)}</option>)}
           </select></label>
           <button className={`overview-tool-button ${advanced ? 'active' : ''}`} aria-expanded={advanced} aria-controls="overview-advanced" onClick={() => setAdvanced(v => !v)}><SlidersHorizontal size={17} />Filter lainnya{(filters.month !== 'all' || filters.geoai || showFacilities) && <span className="overview-filter-dot" />}</button>
         </div>
         <div className="overview-category-row">
           <div className="overview-category-options" aria-label="Kategori indikasi simulasi">
-            {(['all', 'red', 'orange', 'green'] as Filter[]).map(cat => <button key={cat} className={`overview-category ${cat} ${filters.category === cat ? 'active' : ''}`} aria-pressed={filters.category === cat} onClick={() => update({ cat: cat === 'all' ? null : cat, origin: null })}>
+            {(['all', 'red', 'orange', 'green'] as Filter[]).map(cat => <button key={cat} className={`overview-category ${cat} ${filters.category === cat ? 'active' : ''}`} aria-pressed={filters.category === cat} onClick={() => update({ cat: cat === 'all' ? null : cat, origin: null, line: null })}>
               {cat !== 'all' && <span className={`overview-category-dot ${cat}`} />}<span>{categoryNames[cat]}</span><strong>{data ? formatNumber(counts[cat]) : '—'}</strong>
             </button>)}
           </div>
           <button className="overview-list-toggle" aria-expanded={listOpen} aria-controls="overview-results" onClick={() => update({ list: listOpen ? '0' : '1' }, false)}><ListFilter size={17} />{listOpen ? 'Tutup daftar' : 'Buka daftar episode'}</button>
         </div>
         {advanced && <div id="overview-advanced" className="overview-advanced">
-          <label>Periode rujukan<select value={filters.month} onChange={e => update({ month: e.target.value === 'all' ? null : e.target.value, origin: null })}><option value="all">Semua bulan · 2024</option>{data?.summary.months.map(m => <option key={m} value={m}>{monthLabel(m)}</option>)}</select></label>
-          <label className="overview-check"><input type="checkbox" checked={filters.geoai} onChange={e => update({ geoai: e.target.checked ? '1' : null, origin: null, list: '1' })} />Hanya episode dengan ilustrasi GeoAI ({data?.summary.totals.geoaiEpisodes ?? '—'})</label>
+          <label>Periode rujukan<select value={filters.month} onChange={e => update({ month: e.target.value === 'all' ? null : e.target.value, origin: null, line: null })}><option value="all">Semua bulan · 2024</option>{data?.summary.months.map(m => <option key={m} value={m}>{monthLabel(m)}</option>)}</select></label>
+          <label className="overview-check"><input type="checkbox" checked={filters.geoai} onChange={e => update({ geoai: e.target.checked ? '1' : null, origin: null, line: null, list: '1' })} />Hanya episode dengan ilustrasi GeoAI ({data?.summary.totals.geoaiEpisodes ?? '—'})</label>
           <label className="overview-check"><input type="checkbox" checked={showFacilities} onChange={e => update({ refs: e.target.checked ? '1' : null }, false)} />Titik referensi faskes ({data?.summary.totals.facilitiesReference ?? '—'})</label>
         </div>}
       </section>
-      <div className="overview-result-bar" aria-live="polite"><span>{data ? <><strong>{formatNumber(filtered.length)}</strong> episode{filters.category !== 'all' ? ` · indikasi ${categoryNames[filters.category].toLowerCase()}` : ''}{filters.district !== 'all' ? ` · asal ${districtLabel(filters.district)}` : ' di seluruh NTT'}{filters.month !== 'all' ? ` · ${monthLabel(filters.month)}` : ''}{filters.geoai ? ' · ilustrasi GeoAI tersedia' : ''}{filters.query ? ` · “${filters.query}”` : ''}</> : 'Memuat data NTT…'}</span>{narrowed && <button onClick={() => { setQuery(''); update({ cat: null, q: null, district: null, month: null, geoai: null, origin: null }); }}>Reset filter</button>}</div>
+      <div className="overview-result-bar" aria-live="polite"><span>{data ? <><strong>{formatNumber(filtered.length)}</strong> episode{filters.category !== 'all' ? ` · indikasi ${categoryNames[filters.category].toLowerCase()}` : ''}{filters.district !== 'all' ? ` · asal ${districtLabel(filters.district)}` : ' di seluruh NTT'}{filters.month !== 'all' ? ` · ${monthLabel(filters.month)}` : ''}{filters.geoai ? ' · ilustrasi GeoAI tersedia' : ''}{filters.query ? ` · “${filters.query}”` : ''}</> : 'Memuat data NTT…'}</span>{narrowed && <button onClick={() => { setQuery(''); update({ cat: null, q: null, district: null, month: null, geoai: null, origin: null, line: null }); }}>Reset filter</button>}</div>
       {error ? <div className="overview-error" role="alert"><h2>Data belum dapat dimuat</h2><p>Periksa koneksi, lalu coba lagi.</p><button onClick={() => setRetry(v => v + 1)}>Coba lagi</button></div> : <div className={`overview-workspace ${listOpen ? 'with-list' : ''}`}>
-        {data ? <OverviewMap data={data} episodes={filtered} initialCamera={initialCamera.current} district={filters.district} selectedOrigin={filters.origin} showFacilities={showFacilities} onOrigin={selectOrigin} onCamera={saveCamera} /> : <div className="overview-map map-loading">Memuat peta kepulauan NTT…</div>}
+        {data ? <OverviewMap data={data} episodes={filtered} initialCamera={initialCamera.current} district={filters.district} selectedOrigin={filters.origin} selectedLine={filters.line || null} showFacilities={showFacilities} listOpen={listOpen} onOrigin={selectOrigin} onSelectLine={(lineId) => update({ line: lineId }, false)} onCamera={saveCamera} onResetView={() => update({ origin: null, line: null }, false)} /> : <div className="overview-map map-loading">Memuat peta kepulauan NTT…</div>}
         <aside id="overview-results" className={`overview-results ${listOpen ? '' : 'is-collapsed'}`} aria-label="Episode rujukan sesuai filter">
           {listOpen ? <>
-            <div className="overview-list-heading"><div><h2 ref={listHeading} tabIndex={-1}>{filters.origin ? 'Episode dari titik ini' : 'Episode untuk ditelaah'}</h2><p>{filters.origin ? formatFacilityName(originName, 'asal') : 'Indikasi tinggi lebih dahulu, lalu selisih waktu proksi.'}</p></div><button onClick={() => update({ list: '0' }, false)} aria-label="Tutup daftar episode"><X size={18} /></button></div>
-            {filters.origin && <div className="overview-origin-filter"><span>{formatNumber(listed.length)} episode dari fasilitas asal ini</span><button onClick={() => update({ origin: null })}>Lihat semua titik</button></div>}
+            <div className="overview-list-heading">
+              <div>
+                <h2 ref={listHeading} tabIndex={-1}>
+                  {filters.line
+                    ? 'Episode rute rujukan ini'
+                    : filters.origin
+                    ? 'Episode dari fasilitas ini'
+                    : 'Episode untuk ditelaah'}
+                </h2>
+                <p>
+                  {filters.line
+                    ? `${formatNumber(listed.length)} episode rujukan pada rute terpilih`
+                    : filters.origin
+                    ? formatFacilityName(originName, 'asal')
+                    : 'Indikasi tinggi lebih dahulu, lalu selisih waktu proksi.'}
+                </p>
+              </div>
+              <button onClick={() => update({ list: '0' }, false)} aria-label="Tutup daftar episode"><X size={18} /></button>
+            </div>
+            {filters.line ? (
+              <div className="overview-origin-filter">
+                <span>Rute terpilih: {listed[0]?.fromName} → {listed[0]?.toName} ({formatNumber(listed.length)} episode)</span>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
+                  <button onClick={() => update({ line: null })}>Lihat semua rute faskes ini</button>
+                  <button onClick={() => update({ origin: null, line: null })}>Lihat semua titik NTT</button>
+                </div>
+              </div>
+            ) : filters.origin ? (
+              <div className="overview-origin-filter">
+                <span>{formatNumber(listed.length)} episode dari fasilitas asal ini</span>
+                <button onClick={() => update({ origin: null })}>Lihat semua titik</button>
+              </div>
+            ) : null}
             <div className="overview-cases">
               {pageItems.map(ep => {
                 const cat = categoryFromMaster(ep.cat);
-                return <Link prefetch={false} href={investigationHref(ep.id, new URLSearchParams(params))} key={ep.id} className="overview-case" aria-label={`Telaah episode ${ep.id}, indikasi ${categoryNames[cat].toLowerCase()}`}>
+                const epLine = `${ep.fromId}__${ep.toId}`;
+                const isLineActive = filters.line === epLine;
+                return <Link prefetch={false} href={investigationHref(ep.id, new URLSearchParams(params))} key={ep.id} className={`overview-case ${isLineActive ? 'is-line-active' : ''}`} aria-label={`Telaah episode ${ep.id}, indikasi ${categoryNames[cat].toLowerCase()}`}>
                   <div className="overview-case-meta"><span className={`overview-status ${cat}`}><i />{categoryNames[cat]}</span><span>{districtLabel(ep.kabAsal)}</span>{ep.hasGeoAI && <Sparkles size={14} aria-label="Ilustrasi GeoAI tersedia" />}</div>
                   <h3>{formatFacilityName(ep.fromName, 'asal')}</h3><p className="overview-case-destination"><ArrowRight size={13} />{formatFacilityName(ep.toName, 'tujuan')}</p>
                   <div className="overview-case-bottom"><span>{dateLabel(ep.firstDate)} · {ep.visitCount} kunjungan</span><ChevronRight size={16} /></div><code>{ep.id}</code>
                 </Link>;
               })}
-              {data && !listed.length && <div className="overview-empty"><Search size={25} /><h3>Tidak ada episode yang sesuai</h3><p>Ubah kategori atau wilayah, atau hapus filter untuk menjelajahi lagi.</p><button onClick={() => { setQuery(''); update({ cat: null, q: null, district: null, month: null, geoai: null, origin: null }); }}>Hapus filter</button></div>}
+              {data && !listed.length && <div className="overview-empty"><Search size={25} /><h3>Tidak ada episode yang sesuai</h3><p>Ubah kategori atau wilayah, atau hapus filter untuk menjelajahi lagi.</p><button onClick={() => { setQuery(''); update({ cat: null, q: null, district: null, month: null, geoai: null, origin: null, line: null }); }}>Hapus filter</button></div>}
               {!data && <p className="overview-empty">Menyiapkan daftar episode…</p>}
             </div>
             <div className="overview-pagination"><span>{formatNumber(listed.length)} episode · {page}/{totalPages}</span><button aria-label="Episode sebelumnya" disabled={page === 1} onClick={() => update({ page: String(page - 1) }, false)}><ChevronLeft size={18} /></button><button aria-label="Episode berikutnya" disabled={page === totalPages} onClick={() => update({ page: String(page + 1) }, false)}><ChevronRight size={18} /></button></div>
