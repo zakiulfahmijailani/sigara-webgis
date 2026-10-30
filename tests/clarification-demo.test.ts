@@ -6,6 +6,7 @@ import { createClarificationCase, simulateSendDraft, simulateReceiveReply, simul
 import { startDemo, advanceDemoClock, getDemoDashboardState, getDemoClock } from '../src/lib/clarification-store';
 import { getCaseForEpisode, deleteClarificationCase } from '../src/lib/clarification-demo';
 import { loadAgentState } from '../src/lib/agent-activity';
+import { readDemoStorage, writeDemoStorage } from '../src/lib/demo-storage';
 const ep = episodes.find(e => e.id === '290411124Y000018') as Episode;
 const ep2 = episodes.find(e => e.id === '177250424P000119') as Episode;
 const initial = JSON.stringify(episodes);
@@ -35,6 +36,7 @@ test('Staged conversation survives reminders and keeps inquiry, agent answer, pa
   c = simulateAgentInquiryReply(c, ep); assert.equal(c.status, 'awaiting_response'); assert.ok(c.messages.at(-1)?.body.includes(ep.altName!));
   assert.ok(c.messages.find(m => m.id === c.messages.at(-1)?.inReplyToMessageId)?.direction === 'inbound');
   c = simulateReceiveReply(c, ep); assert.equal(c.status, 'followup_required'); assert.ok(c.missingItems?.length);
+  assert.equal(c.messages.at(-1)?.round, c.currentRound);
   c = simulateSendFollowup(c, ep); assert.equal(c.currentRound, 3); assert.equal(c.reminderCount, 0);
   c = advanceSimulationTime(c, 2, ep);
   c = simulateReceiveReply(c, ep); assert.equal(c.status, 'ready_for_review');
@@ -45,6 +47,8 @@ test('Deadlines, bounded jumps, escalation, late reply and metrics agree', () =>
   const sent = simulateSendDraft(draft('no_response'));
   assert.equal(advanceSimulationTime(sent, 1, ep).reminderCount, 0);
   const one = advanceSimulationTime(sent, 2, ep); assert.equal(one.reminderCount, 1);
+  assert.ok(one.messages.at(-1)?.body.includes(sent.id));
+  assert.ok(one.messages.at(-1)?.body.includes(sent.messages[0].id));
   assert.equal(advanceSimulationTime(one, 0, ep), one);
   const jumped = advanceSimulationTime(sent, 100, ep); assert.equal(jumped.status, 'escalated'); assert.equal(jumped.reminderCount, 2); assert.equal(jumped.messages.length, 3);
   assert.equal(jumped.events.filter(e => e.type === 'reminder_sent').length, 2);
@@ -73,5 +77,22 @@ test('Shared storage deduplicates start, keeps reports, preserves clock on reloa
     const report = loadAgentState().reports[a.reportId]; assert.ok(report?.isSimulation);
     deleteClarificationCase(ep.id); assert.ok(getCaseForEpisode(ep2.id)); assert.equal(getCaseForEpisode(ep.id), null);
     assert.equal(JSON.stringify(episodes), initial);
+  } finally { Reflect.deleteProperty(globalThis, 'window'); }
+});
+
+test('Storage write failure keeps the latest temporary state even when an older stored value is readable', () => {
+  let failWrites = true;
+  let stored = 'old';
+  Object.defineProperty(globalThis, 'window', { value: {
+    localStorage: { getItem: () => stored, setItem: (_k: string, value: string) => { if (failWrites) throw new Error('Quota exceeded'); stored = value; } },
+    dispatchEvent: () => true,
+  }, configurable: true });
+  try {
+    writeDemoStorage('sigara-test-temporary', 'latest');
+    assert.equal(readDemoStorage('sigara-test-temporary'), 'latest');
+    failWrites = false;
+    writeDemoStorage('sigara-test-temporary', 'persisted');
+    assert.equal(readDemoStorage('sigara-test-temporary'), 'persisted');
+    assert.equal(stored, 'persisted');
   } finally { Reflect.deleteProperty(globalThis, 'window'); }
 });

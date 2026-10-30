@@ -40,3 +40,5 @@ Respons terbatas pada fixture deterministik, bukan chat bebas. Gambar generatif 
 ## Hasil verifikasi 31 Oktober 2026
 
 Pemeriksaan tipe dan build produksi lulus. Seluruh 60 tes otomatis lulus. Uji Chrome terhadap build produksi lokal menyelesaikan ketiga fixture sampai penutupan, memeriksa laporan snapshot, refresh tanpa pesan baru, total tiga laporan dan tujuh pesan outbound, daftar tiga kasus yang pernah menerima balasan, stylesheet cetak, serta panel mobile 390 px. Reset kasus Kupang disinkronkan ke dashboard pada tab lain (pesan turun dari tujuh menjadi empat), tanpa menghapus dua kasus lain. Tidak ada request ke provider pengiriman/AI yang terdeteksi. Screenshot tersimpan di folder hasil uji di atas. Penyimpanan PDF melalui dialog dan deployment production belum dilakukan.
+
+Audit lanjutan sebelum penggabungan ke main: pengingat menyebut ID kasus, ID permintaan, dan putaran; balasan parsial mengikuti nomor putaran permintaan; fallback memori tetap membaca perubahan terbaru jika penulisan storage gagal sementara nilai lama masih dapat dibaca. Pemeriksaan tipe dan seluruh 61 tes lulus, termasuk regresi ketiga detail tersebut.
