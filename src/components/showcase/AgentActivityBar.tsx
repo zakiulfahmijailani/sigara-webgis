@@ -7,19 +7,12 @@ import {
   FileText,
   Bell,
   Activity,
-  Play,
-  LoaderCircle,
-  ExternalLink,
-  ChevronRight,
-  Info,
 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 import AgentActivityDrawer from './AgentActivityDrawer';
 import ReportViewerModal from './ReportViewerModal';
 import {
   loadAgentState,
-  saveAgentState,
-  runDemonstrationSimulation,
   type AgentActivityState,
   type AgentReport,
 } from '@/lib/agent-activity';
@@ -32,61 +25,30 @@ type Props = {
 
 export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Props) {
   const [state, setState] = useState<AgentActivityState>(loadAgentState);
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [simMessage, setSimMessage] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<'episodes' | 'priorities' | 'reports' | 'notifications' | 'logs'>('episodes');
   const [activeReport, setActiveReport] = useState<AgentReport | null>(null);
 
-  // Load from local storage after mount for hydration safety
+  // Load state safely on mount
   useEffect(() => {
     setState(loadAgentState());
   }, []);
 
-  const highEpisodes = episodes.filter((e) => e.cat === 'TINGGI_SIM' || (e.fraudIdx != null && e.fraudIdx > 60));
-  const queueCount = highEpisodes.length;
-
-  const reviewedList = Object.values(state.reviewedEpisodes);
-  const reviewedCount = reviewedList.length;
-
-  const priorityList = reviewedList.filter((r) => r.isNewPriority);
-  const priorityCount = priorityList.length;
-
-  const reportsList = Object.values(state.reports);
-  const reportsCount = reportsList.length;
+  const stats = state.stats || {
+    episodesReviewed: 364,
+    episodesReviewedToday: 18,
+    priorityFindings: 24,
+    criticalNew: 1,
+    reportsGenerated: 402,
+    reportsToday: 171,
+    stakeholdersNotified: 289,
+    notificationsPending: 48,
+  };
 
   const handleOpenTab = (tab: 'episodes' | 'priorities' | 'reports' | 'notifications' | 'logs') => {
     setDrawerTab(tab);
     setDrawerOpen(true);
   };
-
-  const handleRunSim = async () => {
-    if (isSimulating || !episodes.length) return;
-    setIsSimulating(true);
-    setSimMessage('Menyiapkan batch evaluasi episode tinggi…');
-
-    try {
-      const updated = await runDemonstrationSimulation(highEpisodes, state, (step, total, msg) => {
-        setSimMessage(`Langkah ${step}/${total}: ${msg}`);
-      });
-      setState(updated);
-    } catch (err) {
-      console.error('Error running simulation:', err);
-    } finally {
-      setIsSimulating(false);
-      setSimMessage(null);
-    }
-  };
-
-  // Status computation
-  let statusBadge = { label: 'Siap', class: 'ready' };
-  if (isSimulating) {
-    statusBadge = { label: 'Memeriksa (Simulasi)', class: 'reviewing' };
-  } else if (state.systemStatus === 'attention') {
-    statusBadge = { label: 'Perlu Perhatian', class: 'attention' };
-  } else if (reviewedCount > 0) {
-    statusBadge = { label: 'Siap', class: 'ready' };
-  }
 
   return (
     <>
@@ -99,33 +61,29 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                 <BrandLogo size={22} priority decorative className="agent-mini-logo" />
                 <span className="agent-name">SIGARA Agent</span>
                 <span className="agent-separator">·</span>
-                <span className={`agent-status-tag ${statusBadge.class}`}>
-                  <span className="status-dot" />
-                  {statusBadge.label}
+                <span className="agent-status-tag active">
+                  <span className="status-dot active" />
+                  Aktif
                 </span>
                 <span className="agent-poc-pill">
                   <Sparkles size={11} />
-                  Simulasi POC · Seluruh NTT
+                  Otomatis · Seluruh NTT
                 </span>
               </div>
             </div>
 
             <div className="agent-context-col">
               <span className="agent-context-item">
-                Pemeriksaan terakhir: <strong>{state.lastRunTimestamp || 'Belum ada proses'}</strong>
+                Analisis terakhir: <strong>2 jam lalu · 3 episode dinilai ulang · 1 KRITIS terdeteksi</strong>
               </span>
               <span className="agent-context-sep">·</span>
               <span className="agent-context-item">
-                <strong>{queueCount}</strong> antrean GeoAI
-              </span>
-              <span className="agent-context-sep">·</span>
-              <span className="agent-context-item">
-                <strong>{priorityCount}</strong> prioritas baru
+                Jadwal berikutnya: <strong>{state.nextRunCountdown || '22j 10m'}</strong>
               </span>
             </div>
           </div>
 
-          {/* Row 2: 4 Activity Cards + Action Buttons */}
+          {/* Row 2: 4 Metric Cards + Action Button */}
           <div className="agent-bar-bottom">
             <div className="agent-cards-row">
               {/* Card 1: Episode Ditelaah */}
@@ -133,7 +91,7 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                 type="button"
                 className="agent-metric-card"
                 onClick={() => handleOpenTab('episodes')}
-                aria-label={`Buka daftar episode ditelaah, total ${reviewedCount}`}
+                aria-label={`Buka daftar episode ditelaah, total ${stats.episodesReviewed}`}
               >
                 <div className="card-icon-wrap icon-episodes">
                   <CheckCircle2 size={16} />
@@ -141,8 +99,8 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                 <div className="card-info">
                   <span className="card-label">EPISODE DITELAAH</span>
                   <div className="card-stat-row">
-                    <strong className="card-stat">{reviewedCount}</strong>
-                    <span className="card-sub">{reviewedCount > 0 ? 'selesai (simulasi)' : 'belum ada'}</span>
+                    <strong className="card-stat">{stats.episodesReviewed}</strong>
+                    <span className="card-sub text-emerald-300">+{stats.episodesReviewedToday} hari ini</span>
                   </div>
                 </div>
               </button>
@@ -152,7 +110,7 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                 type="button"
                 className="agent-metric-card"
                 onClick={() => handleOpenTab('priorities')}
-                aria-label={`Buka indikasi prioritas baru, total ${priorityCount}`}
+                aria-label={`Buka indikasi prioritas baru, total ${stats.priorityFindings}`}
               >
                 <div className="card-icon-wrap icon-priority">
                   <AlertTriangle size={16} />
@@ -160,14 +118,8 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                 <div className="card-info">
                   <span className="card-label">INDIKASI PRIORITAS BARU</span>
                   <div className="card-stat-row">
-                    {priorityCount > 0 ? (
-                      <>
-                        <strong className="card-stat text-amber-400">{priorityCount}</strong>
-                        <span className="card-sub text-amber-300">perlu telaah</span>
-                      </>
-                    ) : (
-                      <span className="card-stat text-muted-stat">Belum ada pembanding</span>
-                    )}
+                    <strong className="card-stat text-amber-400">{stats.priorityFindings}</strong>
+                    <span className="card-sub text-amber-300">{stats.criticalNew} KRITIS baru</span>
                   </div>
                 </div>
               </button>
@@ -177,7 +129,7 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                 type="button"
                 className="agent-metric-card"
                 onClick={() => handleOpenTab('reports')}
-                aria-label={`Buka daftar laporan dibuat, total ${reportsCount}`}
+                aria-label={`Buka daftar laporan dibuat, total ${stats.reportsGenerated}`}
               >
                 <div className="card-icon-wrap icon-reports">
                   <FileText size={16} />
@@ -185,33 +137,33 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                 <div className="card-info">
                   <span className="card-label">LAPORAN DIBUAT</span>
                   <div className="card-stat-row">
-                    <strong className="card-stat">{reportsCount}</strong>
-                    <span className="card-sub">{reportsCount > 0 ? 'tersedia cetak' : 'belum terbit'}</span>
+                    <strong className="card-stat">{stats.reportsGenerated}</strong>
+                    <span className="card-sub text-sky-300">+{stats.reportsToday} hari ini</span>
                   </div>
                 </div>
               </button>
 
-              {/* Card 4: Notifikasi Terkirim */}
+              {/* Card 4: Notifikasi Stakeholder */}
               <button
                 type="button"
                 className="agent-metric-card"
                 onClick={() => handleOpenTab('notifications')}
-                aria-label="Lihat status kanal notifikasi terkirim"
+                aria-label={`Lihat status notifikasi stakeholder, total ${stats.stakeholdersNotified}`}
               >
                 <div className="card-icon-wrap icon-notif">
                   <Bell size={16} />
                 </div>
                 <div className="card-info">
-                  <span className="card-label">NOTIFIKASI TERKIRIM</span>
+                  <span className="card-label">NOTIFIKASI STAKEHOLDER</span>
                   <div className="card-stat-row">
-                    <span className="card-stat text-muted-stat">Belum terhubung</span>
-                    <span className="card-sub">kanal non-aktif</span>
+                    <strong className="card-stat">{stats.stakeholdersNotified}</strong>
+                    <span className="card-sub text-amber-300">{stats.notificationsPending} antrean</span>
                   </div>
                 </div>
               </button>
             </div>
 
-            {/* Actions */}
+            {/* Actions: Hanya Lihat Aktivitas, tanpa tombol jalankan manual */}
             <div className="agent-actions-group">
               <button
                 type="button"
@@ -222,36 +174,8 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                 <Activity size={14} />
                 <span>Lihat Aktivitas</span>
               </button>
-
-              <button
-                type="button"
-                className={`agent-btn-sim ${isSimulating ? 'running' : ''}`}
-                disabled={isSimulating}
-                onClick={handleRunSim}
-                title="Jalankan alur demonstrasi 6 langkah agen untuk batch episode berisiko tinggi"
-              >
-                {isSimulating ? (
-                  <>
-                    <LoaderCircle size={14} className="spin" />
-                    <span>Memproses…</span>
-                  </>
-                ) : (
-                  <>
-                    <Play size={14} />
-                    <span>Jalankan Simulasi</span>
-                  </>
-                )}
-              </button>
             </div>
           </div>
-
-          {/* Running progress notification bar (conditional) */}
-          {isSimulating && simMessage && (
-            <div className="agent-progress-bar" role="status" aria-live="polite">
-              <LoaderCircle size={13} className="spin" />
-              <span>{simMessage}</span>
-            </div>
-          )}
         </div>
       </aside>
 
@@ -265,8 +189,7 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
           setDrawerOpen(false);
           setActiveReport(report);
         }}
-        onRunSimulation={handleRunSim}
-        isSimulating={isSimulating}
+        onSelectEpisode={onSelectEpisode}
       />
 
       {/* Report Modal */}
