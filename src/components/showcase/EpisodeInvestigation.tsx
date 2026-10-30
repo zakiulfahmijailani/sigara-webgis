@@ -63,6 +63,7 @@ import IndexDataFlow from './index/IndexDataFlow';
 import SourceVariableDetails from './index/SourceVariableDetails';
 import GeoAIMetricBreakdown from './index/GeoAIMetricBreakdown';
 import { buildEpisodeExplanation } from '@/lib/sigara-index';
+import { getShowcaseEvidenceForEpisode } from '@/lib/geoai-evidence-v4';
 
 const NTTMap = dynamic(() => import('./NTTMap'), {
   ssr: false,
@@ -239,6 +240,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
   }
 
   const cat = categoryFromMaster(episode.cat);
+  const hasIllustrativeEvidence = Boolean(getShowcaseEvidenceForEpisode(episode)?.items.length);
 
   // Build SIGARA Index explanation (memoised)
   const indexExplanation = useMemo(
@@ -269,7 +271,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
               {labels[cat]}
             </span>
             <span className="sim-poc-pill">Simulasi POC</span>
-            {episode.hasGeoAI && (
+            {hasIllustrativeEvidence && (
               <span className="geoai-available-pill">
                 <Sparkles size={13} />
                 Bukti GeoAI
@@ -532,23 +534,23 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                       </div>
 
                       <div className="evidence-check-item">
-                        {episode.hasGeoAI ? (
+                        {hasIllustrativeEvidence ? (
                           <CheckCircle size={18} className="check-geoai" />
                         ) : (
                           <Info size={18} className="check-missing" />
                         )}
                         <div>
                           <strong>
-                            {episode.hasGeoAI
+                            {hasIllustrativeEvidence
                               ? 'Ilustrasi GeoAI Penginderaan Jauh Tersedia'
                               : 'Ilustrasi GeoAI Belum Ada untuk Episode Ini'}
                           </strong>
                           <p>
-                            {episode.hasGeoAI
-                              ? 'Tersedia 2 skenario ilustrasi generatif v4 dan telaah spektral indikator pada bagian Bukti GeoAI di bawah diagram aliran data.'
-                              : 'Paket ilustrasi generatif v4 mencakup 8 episode percontohan. Episode ini belum memiliki berkas ilustrasi generatif terdaftar.'}
+                            {hasIllustrativeEvidence
+                              ? 'Dua skenario gambar v4 tersedia di bawah diagram aliran data. Ilustrasi dipasangkan untuk demonstrasi episode tinggi; bukan pengukuran baru dan tidak mengubah skor master.'
+                              : 'Galeri ilustrasi v4 difokuskan pada episode indikasi tinggi. Episode sedang dan rendah tidak menampilkan gambar demonstrasi.'}
                           </p>
-                          {episode.hasGeoAI && (
+                          {hasIllustrativeEvidence && (
                             <button
                               type="button"
                               className="view-geoai-cta"
@@ -800,10 +802,10 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
             explanation={indexMode === 'multipillar_demo' ? indexExplanation : null}
             mode={indexExplanation.graphMode}
             globalTitle="DATA FLOW — TRANSPARANSI METODOLOGI"
-            onNavigateToGeoAI={episode.hasGeoAI ? () => {
+            onNavigateToGeoAI={hasIllustrativeEvidence ? () => {
               document.getElementById('geoai-evidence')?.scrollIntoView({ behavior: 'smooth' });
             } : undefined}
-            hasGeoAIImage={episode.hasGeoAI}
+            hasGeoAIImage={hasIllustrativeEvidence}
           />
         </div>
 

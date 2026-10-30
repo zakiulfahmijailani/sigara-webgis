@@ -28,7 +28,7 @@ Master sumber: `output/master_dummy_ntt/20261024_201204_812821/tabel_utama_rujuk
 - `/api/showcase/visits?episodeId=...` membaca kunjungan dari tabel Neon saat diperlukan.
 - Kegagalan database menghasilkan 503 dengan `no-store`, bukan data lokal yang diam-diam menggantikan database.
 - Snapshot beranda masih berisi seluruh indeks episode NTT untuk clustering/filter peta yang ada. Ini bukan pagination server untuk master nasional. Tidak ada endpoint publik untuk tabel master 206 kolom atau Parquet sumber.
-- Raster GeoAI tetap aset statis pada aplikasi. Berkas JSON dalam `src/data` menjadi fixture verifikasi/input impor dan tidak diimpor oleh route API runtime.
+- Poster galeri GeoAI v4 dipindahkan ke Neon Object Storage pada 30 Oktober 2026; route gambar mengambil byte dari Neon dengan cache browser/CDN. Lihat `docs/neon-geoai-images.md`. Overlay raster v2 tetap merupakan aset aplikasi. JSON data episode di `src/data` menjadi fixture/input impor; registry lokasi objek v4 dipakai runtime tanpa memuat PNG ke bundle.
 
 Role aplikasi hanya diberi SELECT pada tabel sajian. Role itu tidak dapat menulis episode, membaca master mentah, atau mengunduh Parquet sumber. Credential owner hanya untuk migrasi; credential tersebut tidak dipakai website.
 

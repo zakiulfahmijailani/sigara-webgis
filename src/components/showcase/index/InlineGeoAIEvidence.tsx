@@ -21,6 +21,7 @@ import {
   getEvidenceForEpisode,
   getEpisodeEvidenceScenario,
   getEpisodeGeoAIStatus,
+  getShowcaseEvidenceForEpisode,
   type GeneratedEpisodeEvidence,
   type GeoAIStatusInfo,
 } from '@/lib/geoai-evidence-v4';
@@ -40,6 +41,7 @@ export default function InlineGeoAIEvidence({
   const [selectedScenario, setSelectedScenario] = useState<'A' | 'B'>('A');
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
   const zoomButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -47,10 +49,12 @@ export default function InlineGeoAIEvidence({
   useEffect(() => {
     setSelectedScenario('A');
     setLightboxOpen(false);
+    setFailedImageUrl(null);
   }, [episode.id]);
 
-  // Fetch v4 evidence items for THIS episode only
-  const evidenceList = getEvidenceForEpisode(episode.id);
+  // Pair existing illustrations with high-risk episodes without changing source metadata.
+  const assignment = getShowcaseEvidenceForEpisode(episode);
+  const evidenceList = assignment?.items || [];
   const hasEvidence = evidenceList.length > 0;
 
   // Active evidence item for selected scenario
@@ -99,6 +103,9 @@ export default function InlineGeoAIEvidence({
     pembanding: 'Observasi Pembanding / Verifikasi Baseline',
   };
 
+  // Per showcase policy, medium/low episodes do not display an illustration section.
+  if (episode.cat !== 'TINGGI_SIM') return null;
+
   return (
     <section
       id="geoai-evidence"
@@ -121,6 +128,13 @@ export default function InlineGeoAIEvidence({
           <p className="section-subtitle">
             Ilustrasi analisis spasial untuk menelaah konteks akses rujukan pada episode terpilih.
           </p>
+          {assignment?.isReassigned && (
+            <p className="section-subtitle">
+              Contoh skenario dipilih secara acak tetap untuk episode {episode.id}.
+              {' '}ID, wilayah, dan tanggal di dalam gambar mengikuti skenario asal
+              {' '}{assignment.sourceEpisodeId}; gambar ini bukan hasil analisis aktual episode yang dibuka.
+            </p>
+          )}
         </div>
       </div>
 
@@ -129,7 +143,7 @@ export default function InlineGeoAIEvidence({
           {/* Top metadata strip */}
           <div className="evidence-meta-strip">
             <div className="meta-item">
-              <span className="meta-label">Wilayah:</span>
+              <span className="meta-label">Wilayah Skenario Gambar:</span>
               <strong>
                 <MapPin size={12} />
                 {activeEvidence.region} ({activeEvidence.packageId})
@@ -140,7 +154,7 @@ export default function InlineGeoAIEvidence({
               <strong>{kindLabels[activeEvidence.kind] || activeEvidence.kind}</strong>
             </div>
             <div className="meta-item">
-              <span className="meta-label">Rentang Tanggal Episode:</span>
+              <span className="meta-label">Rentang Episode Sumber Gambar:</span>
               <span>
                 <Calendar size={12} />
                 {dateLabel(activeEvidence.episodeDateRange[0])} — {dateLabel(activeEvidence.episodeDateRange[1])}
@@ -148,7 +162,7 @@ export default function InlineGeoAIEvidence({
             </div>
             <div className="meta-item">
               <span className="meta-label">Dimensi Aset:</span>
-              <code>1586 × 992 px</code>
+              <code>{activeEvidence.width} × {activeEvidence.height} px</code>
             </div>
           </div>
 
@@ -179,13 +193,20 @@ export default function InlineGeoAIEvidence({
           {/* Main Visual Display */}
           <div className="evidence-image-viewport">
             <div className="image-frame">
+              {failedImageUrl === activeEvidence.imageUrl ? (
+                <div className="evidence-caption-box" role="alert">
+                  <p>Gambar dari Neon belum dapat dimuat.</p>
+                  <button type="button" className="scenario-btn" onClick={() => setFailedImageUrl(null)}>Coba muat gambar lagi</button>
+                </div>
+              ) : <>
               <img
                 src={activeEvidence.imageUrl}
                 alt={`Ilustrasi GeoAI ${activeEvidence.region} - Skenario ${activeEvidence.scenario} (${activeEvidence.title})`}
                 className="evidence-main-img"
                 loading="lazy"
-                width={1586}
-                height={992}
+                width={activeEvidence.width}
+                height={activeEvidence.height}
+                onError={() => setFailedImageUrl(activeEvidence.imageUrl)}
               />
               <button
                 ref={zoomButtonRef}
@@ -198,6 +219,7 @@ export default function InlineGeoAIEvidence({
                 <Maximize2 size={15} />
                 <span>Perbesar Gambar</span>
               </button>
+              </>}
             </div>
 
             {/* Verification & Scenario Context Caption */}
@@ -222,15 +244,15 @@ export default function InlineGeoAIEvidence({
                   )
                 ) : activeEvidence.scenarioMode === 'dekat_proksi' ? (
                   <>
-                    <strong>Skenario Hambatan Akses Terdeteksi:</strong> Skenario A memodelkan rintangan fisik
+                    <strong>Ilustrasi Hambatan Akses:</strong> Skenario A memodelkan rintangan fisik
                     (seperti genangan banjir, longsor lereng, atau kebakaran) yang beririsan langsung dengan koridor proksi jalan raya
-                    ke faskes alternatif. Hambatan fisik ini membenarkan pengalihan rujukan ke faskes tujuan yang lebih jauh.
+                    ke faskes alternatif. Contoh ini menjelaskan konteks yang dapat ditelaah saat memverifikasi alasan pengalihan rujukan.
                   </>
                 ) : (
                   <>
                     <strong>Skenario Hambatan di Luar Koridor:</strong> Skenario B memodelkan rintangan yang berada
-                    di luar jalur alternatif. Dalam skenario ini, jalan menuju faskes alternatif tetap dapat dilalui,
-                    sehingga pengalihan rujukan ke faskes tujuan memerlukan verifikasi klinis tambahan.
+                    di luar proksi jalur alternatif. Contoh ini tidak memastikan akses aktual dapat dilalui;
+                    kondisi akses dan alasan klinis tetap perlu diperiksa dari data yang sesuai.
                   </>
                 )}
               </p>
@@ -246,6 +268,9 @@ export default function InlineGeoAIEvidence({
                 <span>Keterkaitan dengan Pilar GeoAI &amp; SIGARA Index</span>
               </div>
               <div className="linkage-body">
+                {assignment?.isReassigned && (
+                  <p>Gambar yang dipasangkan ulang adalah contoh visual; pemilihan gambar tidak menambahkan pengukuran atau skor GeoAI pada episode ini.</p>
+                )}
                 {mode === 'multipillar_demo' ? (
                   <p>
                     Pada <strong>Simulasi Model Multipilar (v2.0)</strong>, bukti GeoAI menyumbang bobot <strong>35%</strong> terhadap total indeks.
@@ -280,12 +305,28 @@ export default function InlineGeoAIEvidence({
                 <div className="disclosure-content">
                   <div className="metadata-grid">
                     <div>
+                      <span className="grid-label">Episode yang Dibuka:</span>
+                      <code>{episode.id}</code>
+                    </div>
+                    <div>
+                      <span className="grid-label">Episode Sumber Ilustrasi:</span>
+                      <code>{activeEvidence.episodeId}</code>
+                    </div>
+                    <div>
+                      <span className="grid-label">Pemetaan Galeri:</span>
+                      <span>{assignment?.isReassigned ? 'Acak tetap untuk episode tinggi' : 'Pasangan asal ilustrasi'} · {assignment?.version}</span>
+                    </div>
+                    <div>
                       <span className="grid-label">Nama Berkas:</span>
                       <code>{activeEvidence.fileName}</code>
                     </div>
                     <div>
                       <span className="grid-label">URL Aset:</span>
                       <code>{activeEvidence.imageUrl}</code>
+                    </div>
+                    <div>
+                      <span className="grid-label">Penyimpanan Gambar:</span>
+                      <span>Neon Object Storage · gambar diambil melalui cache aplikasi</span>
                     </div>
                     <div>
                       <span className="grid-label">Versi Aset:</span>
@@ -334,7 +375,7 @@ export default function InlineGeoAIEvidence({
                   melainkan terbatasnya paket percontohan (8 episode / 16 gambar skenario) pada dataset POC ini.
                 </li>
                 <li>
-                  SIGARA tidak meminjam gambar dari episode lain untuk mengisi tampilan kosong.
+                  Penempatan ilustrasi memakai paket v4 yang tersedia dan tidak mengubah hasil analisis atau skor master.
                 </li>
                 <li>
                   Pada mode simulasi multipilar, skor total indeks dinyatakan <strong>belum dapat dihitung</strong> jika pilar GeoAI belum memiliki data lengkap.

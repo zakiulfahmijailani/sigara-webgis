@@ -1,0 +1,123 @@
+{
+  "version": "sigara-geoai-storage-v1",
+  "provider": "neon-object-storage",
+  "projectId": "square-sound-40269045",
+  "branchId": "br-misty-sea-azd874ea",
+  "endpoint": "https://br-misty-sea-azd874ea.storage.c-3.ap-southeast-1.aws.neon.tech",
+  "bucket": "sigara-geoai",
+  "assets": [
+    {
+      "fileName": "01_NTT-01_banjir_A_v4.png",
+      "objectKey": "v4/87bf1ba71c247931efc857baad53202f7a64ceecb2a7d1f195aaa431c83a2a61/01_NTT-01_banjir_A_v4.png",
+      "sha256": "87bf1ba71c247931efc857baad53202f7a64ceecb2a7d1f195aaa431c83a2a61",
+      "bytes": 3260333,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "02_NTT-01_banjir_B_v4.png",
+      "objectKey": "v4/f45dab5ee15ea94f75ad0c0db927c0bded3d656e41f6bf080d310f6f2fbaa09e/02_NTT-01_banjir_B_v4.png",
+      "sha256": "f45dab5ee15ea94f75ad0c0db927c0bded3d656e41f6bf080d310f6f2fbaa09e",
+      "bytes": 3161019,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "03_NTT-03_banjir_A_v4.png",
+      "objectKey": "v4/377a1e98bb206e7b5590f36114339eaca35120d0d16a92e0db5fad63a286363f/03_NTT-03_banjir_A_v4.png",
+      "sha256": "377a1e98bb206e7b5590f36114339eaca35120d0d16a92e0db5fad63a286363f",
+      "bytes": 3539935,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "04_NTT-03_banjir_B_v4.png",
+      "objectKey": "v4/d0552e82a35e7615f662b6fdf42f4a2e43ff427edff85e26f74e6fe22164684b/04_NTT-03_banjir_B_v4.png",
+      "sha256": "d0552e82a35e7615f662b6fdf42f4a2e43ff427edff85e26f74e6fe22164684b",
+      "bytes": 3386827,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "05_NTT-04_longsor_A_v4.png",
+      "objectKey": "v4/afe26badee31751a274c0bdd683b624b03a22049d0ffc780aabe711291315d76/05_NTT-04_longsor_A_v4.png",
+      "sha256": "afe26badee31751a274c0bdd683b624b03a22049d0ffc780aabe711291315d76",
+      "bytes": 3650027,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "06_NTT-04_longsor_B_v4.png",
+      "objectKey": "v4/5ffa159328478441a197d85c05adfbcb9c12032542aa6a181d0dd9218c7781f2/06_NTT-04_longsor_B_v4.png",
+      "sha256": "5ffa159328478441a197d85c05adfbcb9c12032542aa6a181d0dd9218c7781f2",
+      "bytes": 3228839,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "07_NTT-06_longsor_A_v4.png",
+      "objectKey": "v4/2f22b6d0f06e8235ce33e9afa624ff1d6215f5f6a580c1be4dd444fe90bebe5a/07_NTT-06_longsor_A_v4.png",
+      "sha256": "2f22b6d0f06e8235ce33e9afa624ff1d6215f5f6a580c1be4dd444fe90bebe5a",
+      "bytes": 3521402,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "08_NTT-06_longsor_B_v4.png",
+      "objectKey": "v4/4a02ab3362dcf148947c29e808d8122f98cf94480e9253994d759df6a55ba501/08_NTT-06_longsor_B_v4.png",
+      "sha256": "4a02ab3362dcf148947c29e808d8122f98cf94480e9253994d759df6a55ba501",
+      "bytes": 3116046,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "09_NTT-02_kebakaran_A_v4.png",
+      "objectKey": "v4/9e936c6c42c365035e75295b28b4824decfe6b7cb82cca1bbec4990f0e704ed0/09_NTT-02_kebakaran_A_v4.png",
+      "sha256": "9e936c6c42c365035e75295b28b4824decfe6b7cb82cca1bbec4990f0e704ed0",
+      "bytes": 3811143,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "10_NTT-02_kebakaran_B_v4.png",
+      "objectKey": "v4/206009f874f0e21d820bdecdc6452d49cbf71437fa2ae6d1dc405f4501a975dd/10_NTT-02_kebakaran_B_v4.png",
+      "sha256": "206009f874f0e21d820bdecdc6452d49cbf71437fa2ae6d1dc405f4501a975dd",
+      "bytes": 3542891,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "11_NTT-07_kebakaran_A_v4.png",
+      "objectKey": "v4/604f0fbaad23d56562061b374a6d3051b4ba7b4738ef3cfd8eba2ed68fa2832b/11_NTT-07_kebakaran_A_v4.png",
+      "sha256": "604f0fbaad23d56562061b374a6d3051b4ba7b4738ef3cfd8eba2ed68fa2832b",
+      "bytes": 3638623,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "12_NTT-07_kebakaran_B_v4.png",
+      "objectKey": "v4/b26b37b5e9d0bb3a7a74ade81fc97761b156afed51e3d8ebc4ac6eeb4bffe518/12_NTT-07_kebakaran_B_v4.png",
+      "sha256": "b26b37b5e9d0bb3a7a74ade81fc97761b156afed51e3d8ebc4ac6eeb4bffe518",
+      "bytes": 3323956,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "13_NTT-05_pembanding_A_v4.png",
+      "objectKey": "v4/33f36662ad6819273e0be68756e4a17899a33d68922ba254d3848b1ad2c40612/13_NTT-05_pembanding_A_v4.png",
+      "sha256": "33f36662ad6819273e0be68756e4a17899a33d68922ba254d3848b1ad2c40612",
+      "bytes": 3125161,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "14_NTT-05_pembanding_B_v4.png",
+      "objectKey": "v4/fef53191c2a5dc1c097a5caa5dc5f40078372fdf96603cec38f4f7720c3eedda/14_NTT-05_pembanding_B_v4.png",
+      "sha256": "fef53191c2a5dc1c097a5caa5dc5f40078372fdf96603cec38f4f7720c3eedda",
+      "bytes": 3085492,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "15_NTT-08_pembanding_A_v4.png",
+      "objectKey": "v4/618a59346d0b0e5a96cdfe4cd98c27f9e707d26a631b1e6e52f81cc823f02484/15_NTT-08_pembanding_A_v4.png",
+      "sha256": "618a59346d0b0e5a96cdfe4cd98c27f9e707d26a631b1e6e52f81cc823f02484",
+      "bytes": 2986538,
+      "contentType": "image/png"
+    },
+    {
+      "fileName": "16_NTT-08_pembanding_B_v4.png",
+      "objectKey": "v4/0bc4ebf5c4fa282c95b3dbfcc7286675f8f60e24f609bbd47ac34b55585e2bb7/16_NTT-08_pembanding_B_v4.png",
+      "sha256": "0bc4ebf5c4fa282c95b3dbfcc7286675f8f60e24f609bbd47ac34b55585e2bb7",
+      "bytes": 2925031,
+      "contentType": "image/png"
+    }
+  ],
+  "catalogObjectKey": "catalogs/v4/10a882f15d30e50d3fc45ab82f7b116aa24df51b5118ff78aa00fe69743be9b3.json"
+}

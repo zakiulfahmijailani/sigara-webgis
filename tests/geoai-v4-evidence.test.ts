@@ -9,6 +9,7 @@ import {
   getEpisodeEvidenceScenario,
   getEpisodeGeoAIStatus,
   getAllEvidence,
+  getShowcaseEvidenceForEpisode,
   type GeneratedEpisodeEvidence,
 } from '../src/lib/geoai-evidence-v4';
 import { buildEpisodeExplanation } from '../src/lib/sigara-index';
@@ -33,13 +34,15 @@ test('NTT-V4-1: Registry v4 berisi tepat 16 item untuk 8 episode unik dengan ske
   }
 });
 
-test('NTT-V4-2: Seluruh 16 file PNG v4 ada di public/geoai/ntt/v4/gambar/ dan valid', () => {
+test('NTT-V4-2: Seluruh gambar v4 memakai route Neon dengan sumber lokal tetap sebagai arsip', () => {
   const all = getAllEvidence();
   const baseDir = path.resolve(process.cwd(), 'public');
 
   for (const item of all) {
-    const fullPath = path.join(baseDir, item.imageUrl.replace(/^\//, ''));
-    assert.ok(fs.existsSync(fullPath), `File gambar tidak ditemukan di disk: ${item.imageUrl}`);
+    assert.ok(item.imageUrl.startsWith('/api/geoai/evidence/'));
+    assert.ok(new URL(item.imageUrl, 'https://example.test').searchParams.get('v'));
+    const fullPath = path.join(baseDir, 'geoai/ntt/v4/gambar', item.fileName);
+    assert.ok(fs.existsSync(fullPath), `Arsip gambar tidak ditemukan: ${item.fileName}`);
     const stat = fs.statSync(fullPath);
     assert.ok(stat.size > 10000, `Ukuran file harus wajar (>10KB), didapat: ${stat.size} bytes untuk ${item.imageUrl}`);
   }
@@ -169,4 +172,50 @@ test('NTT-V4-10: Manggarai episode (496481024Y000339) terhubung tepat dengan pak
   assert.ok(itemA.imageUrl.includes('05_NTT-04_longsor_A_v4.png'));
   assert.equal(itemA.region, 'Manggarai');
   assert.equal(itemA.kind, 'longsor');
+});
+
+test('Galeri demonstrasi mencakup semua episode tinggi dan tidak mencakup sedang/rendah', () => {
+  const packages = new Set<string>();
+  let highCount = 0;
+  for (const ep of typedEpisodes) {
+    const before = JSON.stringify(ep);
+    const assignment = getShowcaseEvidenceForEpisode(ep);
+    if (ep.cat === 'TINGGI_SIM') {
+      highCount++;
+      assert.ok(assignment, `Galeri tidak tersedia untuk episode tinggi ${ep.id}`);
+      assert.equal(assignment.episodeId, ep.id);
+      assert.deepEqual(assignment.items.map(item => item.scenario), ['A', 'B']);
+      assert.ok(assignment.items.every(item => item.episodeId === assignment.sourceEpisodeId));
+      assert.equal(new Set(assignment.items.map(item => item.packageId)).size, 1);
+      packages.add(assignment.items[0].packageId);
+      assert.deepEqual(getShowcaseEvidenceForEpisode(ep), assignment, 'Pilihan harus tetap pada pemanggilan ulang');
+    } else {
+      assert.equal(assignment, null);
+    }
+    assert.equal(JSON.stringify(ep), before, 'Pemetaan galeri tidak boleh mengubah metadata/skor master');
+  }
+  assert.equal(highCount, 364);
+  assert.equal(packages.size, 8, 'Seluruh delapan paket dipakai di antara episode tinggi');
+});
+
+test('Pemetaan acak mempertahankan pasangan asal dan provenance gambar yang dipakai ulang', () => {
+  const source = typedEpisodes.find(ep => ep.id === '290411124Y000018')!;
+  const direct = getShowcaseEvidenceForEpisode(source)!;
+  assert.equal(direct.isReassigned, false);
+  assert.equal(direct.items[0].fileName, '01_NTT-01_banjir_A_v4.png');
+
+  const watumanu = typedEpisodes.find(ep => ep.id === '192730424P000116')!;
+  assert.equal(watumanu.hasGeoAI, false);
+  const reused = getShowcaseEvidenceForEpisode(watumanu)!;
+  assert.equal(reused.isReassigned, true);
+  assert.notEqual(reused.sourceEpisodeId, watumanu.id);
+  assert.equal(reused.items[0].episodeId, reused.sourceEpisodeId);
+  assert.deepEqual(getShowcaseEvidenceForEpisode(watumanu), reused);
+  assert.equal(watumanu.hasGeoAI, false, 'Ilustrasi acak tidak mengaku sebagai hasil analisis baru');
+
+  for (const cat of ['SEDANG_SIM', 'RENDAH_SIM'] as const) {
+    const changed = { ...source, cat };
+    assert.equal(getShowcaseEvidenceForEpisode(changed), null, 'Bahkan gambar asal dilarang untuk kategori non-tinggi');
+    assert.equal(getEpisodeGeoAIStatus(changed, direct.items[0]).isAvailable, false);
+  }
 });

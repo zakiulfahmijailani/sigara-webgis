@@ -1,5 +1,6 @@
 import v4Data from '@/data/ntt-generated-evidence-v4.json';
 import type { Episode } from './showcase';
+import { getNeonGeoAIImagePath } from './geoai-storage';
 
 export type GeneratedEpisodeEvidence = {
   id: string;
@@ -39,7 +40,10 @@ export type GeoAIStatusInfo = {
   isAvailable: boolean;
 };
 
-export const V4_EVIDENCE_ITEMS: GeneratedEpisodeEvidence[] = v4Data.items as GeneratedEpisodeEvidence[];
+export const V4_EVIDENCE_ITEMS: GeneratedEpisodeEvidence[] = (v4Data.items as GeneratedEpisodeEvidence[]).map(item => ({
+  ...item,
+  imageUrl: getNeonGeoAIImagePath(item.fileName),
+}));
 
 /**
  * Get all v4 evidence items
@@ -54,6 +58,42 @@ export function getAllEvidence(): GeneratedEpisodeEvidence[] {
 export function getEvidenceForEpisode(episodeId: string): GeneratedEpisodeEvidence[] {
   if (!episodeId) return [];
   return V4_EVIDENCE_ITEMS.filter((item) => String(item.episodeId) === String(episodeId));
+}
+
+export const SHOWCASE_ASSIGNMENT_VERSION = 'v4-high-risk-demo-v1';
+
+export type ShowcaseEvidenceAssignment = {
+  episodeId: string;
+  sourceEpisodeId: string;
+  isReassigned: boolean;
+  version: typeof SHOWCASE_ASSIGNMENT_VERSION;
+  items: GeneratedEpisodeEvidence[];
+};
+
+/** Assign an existing A/B illustration pair to high-risk episodes only.
+ * Source metadata stays intact: this is a showcase pairing, not an observation.
+ * A seeded hash keeps the random choice stable across reloads and SSR/hydration.
+ */
+export function getShowcaseEvidenceForEpisode(
+  episode: Pick<Episode, 'id' | 'cat'>
+): ShowcaseEvidenceAssignment | null {
+  if (!episode.id || episode.cat !== 'TINGGI_SIM') return null;
+
+  const sourceIds = [...new Set(V4_EVIDENCE_ITEMS.map(item => item.episodeId))].sort();
+  if (!sourceIds.length) return null;
+  const direct = getEvidenceForEpisode(episode.id);
+  let hash = 2166136261;
+  for (const char of `${SHOWCASE_ASSIGNMENT_VERSION}|${episode.id}`) {
+    hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
+  }
+  const sourceEpisodeId = direct.length ? episode.id : sourceIds[hash % sourceIds.length];
+  return {
+    episodeId: episode.id,
+    sourceEpisodeId,
+    isReassigned: sourceEpisodeId !== episode.id,
+    version: SHOWCASE_ASSIGNMENT_VERSION,
+    items: getEvidenceForEpisode(sourceEpisodeId).slice().sort((a, b) => a.scenario.localeCompare(b.scenario)),
+  };
 }
 
 /**
@@ -74,14 +114,23 @@ export function getEpisodeGeoAIStatus(
   episode: Episode,
   activeEvidence?: GeneratedEpisodeEvidence | null
 ): GeoAIStatusInfo {
+  if (episode.cat !== 'TINGGI_SIM') {
+    return {
+      status: 'skipped',
+      badgeLabel: 'Tidak Ditampilkan',
+      title: 'Galeri Ilustrasi Difokuskan pada Episode Indikasi Tinggi',
+      description: 'Penempatan gambar demonstrasi hanya berlaku untuk kategori tinggi pada data master.',
+      isAvailable: false,
+    };
+  }
   // If episode has evidence items in v4
   if (activeEvidence) {
     if (activeEvidence.kind === 'pembanding' && activeEvidence.scenarioMode === 'tanpa_data') {
       return {
         status: 'insufficient',
         badgeLabel: 'Bukti Belum Cukup',
-        title: 'Bukti GeoAI Belum Cukup untuk Menilai Akses',
-        description: 'Observasi penginderaan jauh terhalang tutupan awan atau data tidak memadai pada rentang tanggal rujukan.',
+        title: 'Skenario Ilustrasi: Bukti Belum Cukup untuk Menilai Akses',
+        description: 'Gambar contoh memodelkan observasi yang tidak memadai; bukan hasil pengamatan aktual episode ini.',
         isAvailable: true,
       };
     }
@@ -89,8 +138,8 @@ export function getEpisodeGeoAIStatus(
       return {
         status: 'completed',
         badgeLabel: 'Kondisi Stabil',
-        title: 'Analisis Selesai: Tanpa Perubahan Signifikan',
-        description: 'Tidak terdeteksi anomali spektral banjir, longsor, atau kebakaran pada koridor pengamatan.',
+        title: 'Skenario Ilustrasi: Tanpa Perubahan Signifikan',
+        description: 'Gambar contoh memodelkan kondisi stabil; bukan konfirmasi akses aktual episode ini.',
         isAvailable: true,
       };
     }
@@ -104,16 +153,6 @@ export function getEpisodeGeoAIStatus(
   }
 
   // Episode does not have v4 evidence in the 8-episode POC package
-  if (episode.cat === 'RENDAH_SIM') {
-    return {
-      status: 'skipped',
-      badgeLabel: 'Tidak Diprioritaskan',
-      title: 'Analisis GeoAI Tidak Diprioritaskan pada Tahap Ini',
-      description: 'Episode berada dalam kategori Indikasi Rendah (RENDAH_SIM) master. Paket POC v4 difokuskan pada episode percontohan.',
-      isAvailable: false,
-    };
-  }
-
   return {
     status: 'unknown',
     badgeLabel: 'Belum Tersedia',
