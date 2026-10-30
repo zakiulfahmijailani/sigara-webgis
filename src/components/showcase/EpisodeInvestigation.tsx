@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -57,13 +57,19 @@ import BrandLogo from './BrandLogo';
 import GeoAIViewer from './GeoAIViewer';
 import CaseDetails from './CaseDetails';
 import { investigationBackHref } from '@/lib/map-overview';
+import SigaraIndexCard from './index/SigaraIndexCard';
+import PillarBreakdown from './index/PillarBreakdown';
+import IndexDataFlow from './index/IndexDataFlow';
+import SourceVariableDetails from './index/SourceVariableDetails';
+import GeoAIMetricBreakdown from './index/GeoAIMetricBreakdown';
+import { buildEpisodeExplanation } from '@/lib/sigara-index';
 
 const NTTMap = dynamic(() => import('./NTTMap'), {
   ssr: false,
   loading: () => (
     <div className="map-loading" style={{ minHeight: '440px' }}>
       <Compass size={32} className="spin" />
-      <span>Menyiapkan peta interaktif episode…</span>
+      <span>Menyiapkan peta interaktif episodeâ€¦</span>
     </div>
   ),
 });
@@ -111,6 +117,10 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
   const [visits, setVisits] = useState<Visit[] | null>(null);
   const [loadingVisits, setLoadingVisits] = useState<boolean>(false);
   const [visitsError, setVisitsError] = useState<boolean>(false);
+
+  // SIGARA Index mode + ref
+  const [indexMode, setIndexMode] = useState<'master' | 'multipillar_demo'>('master');
+  const indexDataFlowRef = useRef<HTMLElement>(null);
 
   // UI helpers
   const [copiedId, setCopiedId] = useState(false);
@@ -224,6 +234,12 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
   }
 
   const cat = categoryFromMaster(episode.cat);
+
+  // Build SIGARA Index explanation (memoised)
+  const indexExplanation = useMemo(
+    () => buildEpisodeExplanation(episode, indexMode, data.geoai),
+    [episode, indexMode, data.geoai]
+  );
   const readableFrom = formatFacilityName(episode.fromName, 'asal');
   const readableTo = formatFacilityName(episode.toName, 'tujuan');
   const readableAlt = episode.altName
@@ -271,14 +287,14 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
             <div className="inv-meta-row">
               <span>
                 <MapPin size={13} />
-                {episode.kabAsal} → {episode.kabTujuan}
+                {episode.kabAsal} â†’ {episode.kabTujuan}
               </span>
-              <span className="meta-sep">·</span>
+              <span className="meta-sep">Â·</span>
               <span>
                 <Calendar size={13} />
                 {dateLabel(episode.firstDate)}
               </span>
-              <span className="meta-sep">·</span>
+              <span className="meta-sep">Â·</span>
               <span>{episode.visitCount} kunjungan rujukan</span>
             </div>
           </div>
@@ -298,7 +314,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
               </button>
             </div>
             <p className="inv-disclaimer">
-              Prioritas penelaahan simulasi · Bukan penetapan kecurangan (fraud).
+              Prioritas penelaahan simulasi Â· Bukan penetapan kecurangan (fraud).
             </p>
           </div>
         </section>
@@ -373,6 +389,18 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
           <div className="inv-panel-left" role="tabpanel" id="investigation-tab-content" aria-labelledby={`investigation-tab-${activeTab}`} tabIndex={0}>
             {activeTab === 'summary' && (
               <div className="inv-summary-pane">
+                {/* 2. Kartu SIGARA Index yang menonjol */}
+                <SigaraIndexCard
+                  explanation={indexExplanation}
+                  compact={false}
+                  onToggleMode={setIndexMode}
+                />
+
+                {/* 3. Bagian Rincian Pilar */}
+                <PillarBreakdown
+                  pillars={indexExplanation.pillars}
+                  mode={indexMode}
+                />
                 {/* 1. Mengapa episode ini ditandai? */}
                 <div className={`plain-card question-1 ${cat}`}>
                   <div className="card-question-header">
@@ -394,7 +422,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                           <span>
                             {' '}Terdapat selisih waktu tempuh tambahan sebesar{' '}
                             <strong className="text-alert">+{episode.diffMin.toFixed(1)} menit</strong>{' '}
-                            (rasio {episode.timeRatio ? `${episode.timeRatio.toFixed(1)}×` : '—'} waktu perjalanan).
+                            (rasio {episode.timeRatio ? `${episode.timeRatio.toFixed(1)}Ã—` : 'â€”'} waktu perjalanan).
                           </span>
                         )}
                       </p>
@@ -453,7 +481,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
 
                         <div className="alt-stats-grid">
                           <div>
-                            <span>Jarak Asal → Tujuan</span>
+                            <span>Jarak Asal â†’ Tujuan</span>
                             <strong>{formatKm(episode.distM)}</strong>
                           </div>
                           <div>
@@ -469,7 +497,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                           <div>
                             <span>Selisih Waktu</span>
                             <strong className={episode.diffMin && episode.diffMin > 0 ? 'text-alert' : ''}>
-                              {episode.diffMin != null ? `${episode.diffMin > 0 ? '+' : ''}${episode.diffMin.toFixed(1)} menit` : '—'}
+                              {episode.diffMin != null ? `${episode.diffMin > 0 ? '+' : ''}${episode.diffMin.toFixed(1)} menit` : 'â€”'}
                             </strong>
                           </div>
                         </div>
@@ -560,6 +588,16 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                   showSatelliteBackdrop={showSatelliteBackdrop}
                   setShowSatelliteBackdrop={setShowSatelliteBackdrop}
                   onSelectEpisode={(id) => { const next = new URLSearchParams(searchParams); next.set('tab', 'evidence'); router.push(`/episode/${id}?${next}`); }}
+                  onViewIndexContribution={() => {
+                    indexDataFlowRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                />
+                <GeoAIMetricBreakdown
+                  image={activeGeoAIImage}
+                  geoaiPillar={indexExplanation.pillars.find(p => p.id === 'geoai') || null}
+                  onScrollToSankey={() => {
+                    indexDataFlowRef.current?.scrollIntoView({ behavior: 'smooth' });
+                  }}
                 />
               </div>
             )}
@@ -577,7 +615,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                 {loadingVisits && (
                   <div className="visits-loading">
                     <LoaderCircle size={22} className="spin" />
-                    <span>Memuat riwayat kunjungan dari repositori data…</span>
+                    <span>Memuat riwayat kunjungan dari repositori dataâ€¦</span>
                   </div>
                 )}
 
@@ -608,7 +646,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                             <td><code>{v.visitId}</code></td>
                             <td>{dateLabel(v.dateFktp)}</td>
                             <td>{dateLabel(v.dateFkrtl)}</td>
-                            <td>{v.diagnosa || '—'}</td>
+                            <td>{v.diagnosa || 'â€”'}</td>
                             <td>{v.poli || 'Belum tersedia'}</td>
                           </tr>
                         ))}
@@ -645,7 +683,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                     <h4>2. Mosaik Penginderaan Jauh</h4>
                     <p>
                       Latar citra satelit bersumber dari <strong>EOX Sentinel-2 cloudless annual RGB mosaic 2024</strong>.
-                      Resolusi spasial nominal 10–20 meter. Mosaik tahunan memberikan konteks spasial bebas awan
+                      Resolusi spasial nominal 10â€“20 meter. Mosaik tahunan memberikan konteks spasial bebas awan
                       tetapi bukan observasi tanggal peristiwa bencana aktual.
                     </p>
                     <p className="method-sub">Lisensi: Creative Commons BY-NC-SA 4.0.</p>
@@ -670,6 +708,9 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                   </div>
                 </div>
 
+                {/* Inventaris 12 Variabel & Provenance Data */}
+                <SourceVariableDetails variables={indexExplanation.variables} />
+
                 {/* Educational Agent Simulation Section */}
                 <div className="agent-sim-box">
                   <div className="agent-sim-header">
@@ -689,7 +730,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                       {agentStep >= 0 ? (
                         <>
                           <LoaderCircle size={15} className="spin" />
-                          <span>Menjalankan alur agen…</span>
+                          <span>Menjalankan alur agenâ€¦</span>
                         </>
                       ) : (
                         <>
@@ -785,6 +826,17 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Full-width Index Data Flow section */}
+        <div ref={indexDataFlowRef as any} style={{ width: '100%', padding: '0 0 30px' }}>
+          <IndexDataFlow
+            explanation={indexMode === 'multipillar_demo' ? indexExplanation : null}
+            mode={indexExplanation.graphMode}
+            globalTitle="DATA FLOW — TRANSPARANSI METODOLOGI"
+            onNavigateToGeoAI={episode.hasGeoAI ? () => handleTabChange('evidence') : undefined}
+            hasGeoAIImage={episode.hasGeoAI}
+          />
         </div>
       </main>
 

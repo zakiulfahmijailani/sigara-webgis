@@ -5,6 +5,7 @@ import {
   ExternalLink,
   Layers,
   Sparkles,
+  ArrowRight,
   Maximize2,
   AlertTriangle,
   Info,
@@ -28,6 +29,7 @@ type Props = {
   showSatelliteBackdrop: boolean;
   setShowSatelliteBackdrop: (v: boolean) => void;
   onSelectEpisode: (epId: string) => void;
+  onViewIndexContribution?: () => void;
 };
 
 export default function GeoAIViewer({
@@ -42,6 +44,7 @@ export default function GeoAIViewer({
   showSatelliteBackdrop,
   setShowSatelliteBackdrop,
   onSelectEpisode,
+  onViewIndexContribution,
 }: Props) {
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [showMethods, setShowMethods] = useState(false);
@@ -376,6 +379,31 @@ export default function GeoAIViewer({
                 </div>
               </div>
 
+              {onViewIndexContribution && (
+                <div style={{ marginTop: '9px', paddingTop: '8px', borderTop: '1px solid #edf1eb' }}>
+                  <button
+                    type="button"
+                    onClick={onViewIndexContribution}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: '#eef7f3',
+                      border: '1px solid #b7dfd2',
+                      color: '#1b6d57',
+                      padding: '5px 9px',
+                      borderRadius: '5px',
+                      fontSize: '10px',
+                      fontWeight: 650,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <Sparkles size={11} />
+                    <span>Lihat kontribusi ke indeks &amp; Sankey</span>
+                    <ArrowRight size={11} />
+                  </button>
+                </div>
+              )}
               {/* Reference paper */}
               <div style={{ marginTop: '9px', paddingTop: '8px', borderTop: '1px solid #edf1eb', fontSize: '9px', color: '#6a8073' }}>
                 <span>Referensi ilmiah: </span>

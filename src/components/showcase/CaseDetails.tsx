@@ -108,7 +108,7 @@ export default function CaseDetails({
           ep.reason !== 'tidak_ada' ? 'Alasan tercatat dalam skenario' : 'Tidak ada alasan khusus tercatat',
         ],
         [
-          'Indeks indikasi fraud (simulasi)',
+          'SIGARA Index master (prioritas penelaahan)',
           ep.fraudIdx != null ? ep.fraudIdx.toFixed(3) : '—',
           'Skor sintetis master',
           'Simulasi prioritas penelaahan',

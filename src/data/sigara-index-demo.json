@@ -1,0 +1,56 @@
+{
+  "modelVersion": "v2.0-multipillar-demo",
+  "disclaimer": "Simulasi model multipilar — Konfigurasi bobot demonstrasi POC untuk pengujian UI dan struktur aliran data, bukan keputusan metodologi yang tervalidasi atau penetapan kecurangan nyata.",
+  "weights": {
+    "services": 0.25,
+    "patterns": 0.15,
+    "geoai": 0.35,
+    "access": 0.25
+  },
+  "canonicalMathTest": {
+    "description": "Contoh pengujian matematika dari spesifikasi brief bagian 8",
+    "pillarScores": {
+      "services": 80.0,
+      "patterns": 70.0,
+      "geoai": 40.0,
+      "access": 60.0
+    },
+    "contributions": {
+      "services": 20.0,
+      "patterns": 10.5,
+      "geoai": 14.0,
+      "access": 15.0
+    },
+    "expectedTotal": 59.5
+  },
+  "benchmarkCases": [
+    {
+      "id": "192730424P000116",
+      "label": "Puskesmas Watumanu → RSUD Aeramo (Kasus Indikasi Tinggi)",
+      "masterScore": 80.0,
+      "masterCategory": "TINGGI_SIM",
+      "reason": "tidak_ada",
+      "hasGeoAI": false,
+      "note": "Episode rujukan master dengan bypass 22 alternatif layak tanpa pembenaran skenario. Di mode master, GeoAI berstatus 'Belum tersedia untuk episode ini' (bukan 0)."
+    },
+    {
+      "id": "192730824P000048",
+      "label": "Puskesmas Watumanu → RSUD Aeramo (Kasus Indikasi Rendah)",
+      "masterScore": 10.0,
+      "masterCategory": "RENDAH_SIM",
+      "reason": "layanan_khusus",
+      "hasGeoAI": false,
+      "note": "Pasangan faskes sama, namun kebutuhan spesialisasi khusus membuat alternatif dekat tidak relevan. Di mode master, skor dasar 10 poin."
+    },
+    {
+      "id": "290411124Y000018",
+      "label": "Puskesmas Niki-Niki → RS Siloam Kupang (Kasus Ilustrasi GeoAI)",
+      "masterScore": 73.4,
+      "masterCategory": "TINGGI_SIM",
+      "reason": "tidak_ada",
+      "hasGeoAI": true,
+      "geoaiPackage": "paket_16_ntt_v2",
+      "note": "Memiliki 2 skenario citra Sentinel-2 dan overlay spektral MNDWI genangan banjir yang dapat ditelaah kontribusinya."
+    }
+  ]
+}
