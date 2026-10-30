@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { ArrowRight, ChevronLeft, ChevronRight, ListFilter, MapPin, Search, SlidersHorizontal, Sparkles, X, Info, HelpCircle } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, ListFilter, MapPin, Search, SlidersHorizontal, Layers3, Sparkles, X, Info, HelpCircle } from 'lucide-react';
 import AppHeader from './AppHeader';
 import AgentActivityBar from './AgentActivityBar';
 import { loadShowcase } from '@/lib/load-showcase';
@@ -272,7 +272,7 @@ export default function MapOverview() {
         </div>
       </details>
 
-      <footer className="overview-footer"><span><Info size={14} />Indikasi pada episode, bukan penetapan fraud pada faskes.</span><Link href="/contoh-geoai"><Sparkles size={14} />Jelajahi contoh GeoAI<ArrowRight size={14} /></Link></footer>
+      <footer className="overview-footer"><span><Info size={14} />Indikasi pada episode, bukan penetapan fraud pada faskes.</span><Link href="/episode?cat=red"><Layers3 size={14} />Jelajahi episode prioritas<ArrowRight size={14} /></Link></footer>
     </main>
   </div>;
 }

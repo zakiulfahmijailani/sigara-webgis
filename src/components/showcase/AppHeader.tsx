@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MapPinned, Info, Sparkles, Layers3, BarChart3, Home } from 'lucide-react';
+import { MapPinned, Info, Layers3, BarChart3 } from 'lucide-react';
 import BrandLogo from './BrandLogo';
 
 type Props = {
@@ -14,7 +14,6 @@ export default function AppHeader({ onOpenAbout }: Props) {
   const isHome = pathname === '/';
   const isEpisode = pathname.startsWith('/episode');
   const isRingkasan = pathname.startsWith('/ringkasan');
-  const isContoh = pathname.startsWith('/contoh-geoai');
 
   return (
     <header className="app-header">
@@ -53,14 +52,6 @@ export default function AppHeader({ onOpenAbout }: Props) {
         >
           <BarChart3 size={15} />
           <span>Ringkasan</span>
-        </Link>
-        <Link
-          href="/contoh-geoai"
-          aria-current={isContoh ? 'page' : undefined}
-          className={`header-nav-item ${isContoh ? 'active' : ''}`}
-        >
-          <Sparkles size={15} />
-          <span>Contoh GeoAI</span>
         </Link>
       </nav>
 
