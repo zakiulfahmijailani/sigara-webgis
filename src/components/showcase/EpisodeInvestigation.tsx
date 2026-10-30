@@ -543,12 +543,12 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                           <strong>
                             {hasIllustrativeEvidence
                               ? 'Ilustrasi GeoAI Penginderaan Jauh Tersedia'
-                              : 'Ilustrasi GeoAI Belum Ada untuk Episode Ini'}
+                              : 'Pemeriksaan GeoAI Tidak Dipicu'}
                           </strong>
                           <p>
                             {hasIllustrativeEvidence
                               ? 'Ilustrasi analisis tersedia di bawah diagram aliran data. Ilustrasi dipasangkan untuk demonstrasi episode tinggi; bukan pengukuran baru dan tidak mengubah skor master.'
-                              : 'Galeri ilustrasi v4 difokuskan pada episode indikasi tinggi. Episode sedang dan rendah tidak menampilkan gambar demonstrasi.'}
+                              : 'GeoAI tidak dipicu — indeks awal tidak melewati ambang pemeriksaan.'}
                           </p>
                           {hasIllustrativeEvidence && (
                             <button

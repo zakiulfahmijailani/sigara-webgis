@@ -14,6 +14,7 @@ import {
   Navigation,
   ArrowRight,
   Compass,
+  FileText,
 } from 'lucide-react';
 import type { Episode } from '@/lib/showcase';
 import type { IndexPillar } from '@/lib/sigara-index-types';
@@ -22,6 +23,13 @@ import {
   getPrimaryEvidenceForEpisode,
   type GeoAIStatusInfo,
 } from '@/lib/geoai-evidence-v4';
+import {
+  getEpisodeEligibility,
+  loadAgentState,
+  createEpisodeReport,
+  type AgentReport,
+} from '@/lib/agent-activity';
+import ReportViewerModal from '../ReportViewerModal';
 import { dateLabel, formatKm, formatMinutes } from '@/lib/showcase';
 
 type Props = {
@@ -39,6 +47,8 @@ export default function InlineGeoAIEvidence({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
+  const [activeReport, setActiveReport] = useState<AgentReport | null>(null);
+  const [agentState, setAgentState] = useState(loadAgentState);
   const zoomButtonRef = useRef<HTMLButtonElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -47,6 +57,8 @@ export default function InlineGeoAIEvidence({
     setActiveView('remote_sensing');
     setLightboxOpen(false);
     setFailedImageUrl(null);
+    setActiveReport(null);
+    setAgentState(loadAgentState());
   }, [episode.id]);
 
   // Pair existing illustration with high-risk episodes (deterministic single image)
@@ -94,8 +106,12 @@ export default function InlineGeoAIEvidence({
     pembanding: 'Observasi Pembanding / Verifikasi Baseline',
   };
 
-  // Per showcase policy, medium/low episodes do not display an illustration section.
-  if (episode.cat !== 'TINGGI_SIM') return null;
+  // Check eligibility based on initial index/category (medium/low skipped)
+  const eligibility = getEpisodeEligibility(episode);
+  if (eligibility.eligibility === 'skipped' || episode.cat !== 'TINGGI_SIM') return null;
+
+  const reviewedRecord = agentState.reviewedEpisodes[episode.id] || null;
+  const isReviewed = Boolean(reviewedRecord);
 
   return (
     <section
@@ -111,6 +127,9 @@ export default function InlineGeoAIEvidence({
               <Sparkles size={11} />
               ILUSTRASI POC
             </span>
+            <span className={`geoai-status-pill ${isReviewed ? 'completed' : 'waiting'}`}>
+              {isReviewed ? 'Selesai Ditelaah (Simulasi)' : 'Menunggu Pemeriksaan'}
+            </span>
             <span className={`geoai-status-pill ${statusInfo.status}`}>
               {statusInfo.badgeLabel}
             </span>
@@ -118,6 +137,7 @@ export default function InlineGeoAIEvidence({
           <h3 className="section-title">Analisis GeoAI Episode Ini</h3>
           <p className="section-subtitle">
             Konteks spasial dan telaah penginderaan jauh pendukung verifikasi akses rujukan pada episode {episode.id}.
+            {' '}<span className="eligibility-tag">{eligibility.eligibilityReason}</span>
           </p>
           {assignment?.isReassigned && (
             <p className="section-subtitle">
@@ -126,6 +146,20 @@ export default function InlineGeoAIEvidence({
               {' '}gambar ini adalah visualisasi representatif, bukan observasi langsung episode yang dibuka.
             </p>
           )}
+        </div>
+        <div className="header-report-action">
+          <button
+            type="button"
+            className="btn-create-report"
+            onClick={() => {
+              const rpt = agentState.reports[episode.id] || createEpisodeReport(episode, reviewedRecord);
+              setActiveReport(rpt);
+            }}
+            title="Buka atau cetak berkas laporan telaah episode"
+          >
+            <FileText size={14} />
+            <span>{agentState.reports[episode.id] ? 'Buka Laporan Episode' : 'Buat Laporan Episode'}</span>
+          </button>
         </div>
       </div>
 
@@ -536,6 +570,13 @@ export default function InlineGeoAIEvidence({
             </div>
           </div>
         </div>
+      )}
+      {/* Printable Report Modal */}
+      {activeReport && (
+        <ReportViewerModal
+          report={activeReport}
+          onClose={() => setActiveReport(null)}
+        />
       )}
     </section>
   );

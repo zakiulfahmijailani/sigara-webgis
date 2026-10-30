@@ -5,6 +5,7 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { ArrowRight, ChevronLeft, ChevronRight, ListFilter, MapPin, Search, SlidersHorizontal, Sparkles, X, Info, HelpCircle } from 'lucide-react';
 import AppHeader from './AppHeader';
+import AgentActivityBar from './AgentActivityBar';
 import { loadShowcase } from '@/lib/load-showcase';
 import { districtLabel, episodeCounts, filterMapEpisodes, investigationHref, readCamera, readMapFilters, type Camera } from '@/lib/map-overview';
 import { categoryFromMaster, dateLabel, formatFacilityName, formatNumber, monthLabel, type Filter, type ShowcaseData } from '@/lib/showcase';
@@ -91,6 +92,7 @@ export default function MapOverview() {
 
   return <div className="map-home">
     <a className="overview-skip" href="#overview-results">Lewati peta, buka daftar episode</a>
+    <AgentActivityBar episodes={data?.episodes} onSelectEpisode={(id) => setSelectedEpisodeId(id)} />
     <AppHeader onOpenAbout={() => setAbout(v => !v)} />
     <main className="overview-main">
       <section className="overview-heading">
