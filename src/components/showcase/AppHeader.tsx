@@ -21,10 +21,9 @@ export default function AppHeader({ onOpenAbout }: Props) {
         <BrandLogo className="header-logo" size={48} priority decorative />
         <div>
           <strong>
-            SIGARA<span> / </span>
-            <small>GeoAI NTT</small>
+            SIGARA
           </strong>
-          <p>Penelaahan rujukan berbasis konteks spasial.</p>
+          <p>Sistem Informasi Geografis Agentik untuk Rujukan Akuntabel</p>
         </div>
       </Link>
 

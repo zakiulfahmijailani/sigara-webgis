@@ -264,10 +264,9 @@ export default function Showcase() {
           <BrandLogo className="header-logo" size={56} priority decorative />
           <div>
             <strong>
-              SIGARA<span> / </span>
-              <small>GeoAI NTT</small>
+              SIGARA
             </strong>
-            <p>Rujukan akuntabel berbasis bukti penginderaan jauh.</p>
+            <p>Sistem Informasi Geografis Agentik untuk Rujukan Akuntabel</p>
           </div>
         </a>
 
