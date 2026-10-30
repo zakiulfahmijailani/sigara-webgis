@@ -1,6 +1,8 @@
 'use client';
 import React, { useRef } from 'react';
 import { Printer, X, Download, ShieldAlert, Sparkles, Building2, MapPin, Calendar, FileText, CheckCircle2 } from 'lucide-react';
+import { useDemoDialog } from './useDemoDialog';
+import { formatSimDateTime } from '@/lib/clarification-demo';
 import BrandLogo from './BrandLogo';
 import type { AgentReport } from '@/lib/agent-activity';
 
@@ -10,6 +12,7 @@ type Props = {
 };
 
 export default function ReportViewerModal({ report, onClose }: Props) {
+  const dialogRef = useDemoDialog(true, onClose);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = () => {
@@ -26,7 +29,7 @@ export default function ReportViewerModal({ report, onClose }: Props) {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="report-modal-container">
+      <div className="report-modal-container" ref={dialogRef}>
         {/* Modal Toolbar (hidden on print) */}
         <div className="report-toolbar no-print">
           <div className="toolbar-left">
@@ -58,6 +61,7 @@ export default function ReportViewerModal({ report, onClose }: Props) {
 
         {/* Printable Report Document Body */}
         <div className="report-document" ref={contentRef} id="printable-report">
+          {report.clarification && <section className="doc-clarification"><h2>Ringkasan Klarifikasi — Simulasi POC</h2><p>Snapshot versi {report.revision} · {formatSimDateTime(report.createdAt)}</p><p>Kasus {report.clarification.id} · Status: {report.clarification.status}</p><p>Waktu simulasi: {formatSimDateTime(report.clarification.simulationClock)}</p><p>Pertanyaan: {report.clarification.summary?.questionAsked || 'Permintaan awal belum dijawab.'}</p><p>Jawaban dummy: {report.clarification.summary?.stakeholderResponse || 'Belum ada balasan.'}</p><p>Informasi lengkap: {report.clarification.summary?.completeItems.join('; ') || 'Belum tersedia'}</p><p>Masih kurang: {report.clarification.summary?.missingItems.join('; ') || 'Lihat penelaahan petugas'}</p><p>Rekomendasi: {report.clarification.summary?.recommendation || 'Tunggu tanggapan dan telaah petugas.'}</p><p>Catatan petugas: {report.clarification.closureNotes || 'Belum ditutup'}</p><p>Pernyataan stakeholder dummy belum diverifikasi secara independen. Indeks master tetap.</p></section>}
           {/* Header */}
           <div className="doc-header">
             <div className="doc-brand">

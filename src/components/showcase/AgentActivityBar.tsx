@@ -13,9 +13,13 @@ import AgentActivityDrawer from './AgentActivityDrawer';
 import ReportViewerModal from './ReportViewerModal';
 import {
   loadAgentState,
+  getInitialAgentState,
+  runDemonstrationSimulation,
   type AgentActivityState,
   type AgentReport,
 } from '@/lib/agent-activity';
+import { getDemoDashboardState } from '@/lib/clarification-store';
+import { loadAllClarificationCases, getClarificationAggregates } from '@/lib/clarification-demo';
 import type { Episode } from '@/lib/showcase';
 
 type Props = {
@@ -24,28 +28,26 @@ type Props = {
 };
 
 export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Props) {
-  const [state, setState] = useState<AgentActivityState>(loadAgentState);
+  const [state, setState] = useState<AgentActivityState>(getInitialAgentState);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerTab, setDrawerTab] = useState<'episodes' | 'priorities' | 'reports' | 'notifications' | 'logs'>('episodes');
+  const [drawerTab, setDrawerTab] = useState<'episodes' | 'priorities' | 'reports' | 'notifications' | 'logs' | 'cases'>('episodes');
   const [activeReport, setActiveReport] = useState<AgentReport | null>(null);
 
+  const [metrics, setMetrics] = useState(() => getClarificationAggregates({}));
   // Load state safely on mount
   useEffect(() => {
-    setState(loadAgentState());
+    const sync = () => { setState(getDemoDashboardState()); setMetrics(getClarificationAggregates(loadAllClarificationCases())); };
+    sync();
+    window.addEventListener('sigara-demo-change', sync);
+    window.addEventListener('storage', sync);
+    return () => { window.removeEventListener('sigara-demo-change', sync); window.removeEventListener('storage', sync); };
   }, []);
 
-  const stats = state.stats || {
-    episodesReviewed: 364,
-    episodesReviewedToday: 18,
-    priorityFindings: 24,
-    criticalNew: 1,
-    reportsGenerated: 402,
-    reportsToday: 171,
-    stakeholdersNotified: 289,
-    notificationsPending: 48,
-  };
+  const stats = state.stats;
+  const [caseFilter, setCaseFilter] = useState('all');
+  const [busy, setBusy] = useState(false);
 
-  const handleOpenTab = (tab: 'episodes' | 'priorities' | 'reports' | 'notifications' | 'logs') => {
+  const handleOpenTab = (tab: 'episodes' | 'priorities' | 'reports' | 'notifications' | 'logs' | 'cases') => {
     setDrawerTab(tab);
     setDrawerOpen(true);
   };
@@ -63,22 +65,22 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                 <span className="agent-separator">·</span>
                 <span className="agent-status-tag active">
                   <span className="status-dot active" />
-                  Aktif
+                  Siap demo
                 </span>
                 <span className="agent-poc-pill">
                   <Sparkles size={11} />
-                  Otomatis · Seluruh NTT
+                  Simulasi POC · Tidak ada pengiriman nyata
                 </span>
               </div>
             </div>
 
             <div className="agent-context-col">
               <span className="agent-context-item">
-                Analisis terakhir: <strong>2 jam lalu · 3 episode dinilai ulang · 1 KRITIS terdeteksi</strong>
+                Aktivitas demo: <strong>{state.lastRunTimestamp || 'Belum dijalankan'}</strong>
               </span>
               <span className="agent-context-sep">·</span>
               <span className="agent-context-item">
-                Jadwal berikutnya: <strong>{state.nextRunCountdown || '22j 10m'}</strong>
+                Waktu maju melalui kontrol demo
               </span>
             </div>
           </div>
@@ -100,7 +102,7 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                   <span className="card-label">EPISODE DITELAAH</span>
                   <div className="card-stat-row">
                     <strong className="card-stat">{stats.episodesReviewed}</strong>
-                    <span className="card-sub text-emerald-300">+{stats.episodesReviewedToday} hari ini</span>
+                    <span className="card-sub text-emerald-300">episode unik</span>
                   </div>
                 </div>
               </button>
@@ -119,7 +121,7 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                   <span className="card-label">INDIKASI PRIORITAS BARU</span>
                   <div className="card-stat-row">
                     <strong className="card-stat text-amber-400">{stats.priorityFindings}</strong>
-                    <span className="card-sub text-amber-300">{stats.criticalNew} KRITIS baru</span>
+                    <span className="card-sub text-amber-300">belum ada pembanding</span>
                   </div>
                 </div>
               </button>
@@ -138,7 +140,7 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                   <span className="card-label">LAPORAN DIBUAT</span>
                   <div className="card-stat-row">
                     <strong className="card-stat">{stats.reportsGenerated}</strong>
-                    <span className="card-sub text-sky-300">+{stats.reportsToday} hari ini</span>
+                    <span className="card-sub text-sky-300">episode unik</span>
                   </div>
                 </div>
               </button>
@@ -157,13 +159,16 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                   <span className="card-label">NOTIFIKASI STAKEHOLDER</span>
                   <div className="card-stat-row">
                     <strong className="card-stat">{stats.stakeholdersNotified}</strong>
-                    <span className="card-sub text-amber-300">{stats.notificationsPending} antrean</span>
+                    <span className="card-sub text-amber-300">pesan simulasi</span>
                   </div>
                 </div>
               </button>
             </div>
 
-            {/* Actions: Hanya Lihat Aktivitas, tanpa tombol jalankan manual */}
+            <div className="demo-chips">
+              {[['awaiting_response', 'Menunggu balasan', metrics.awaitingCount], ['received', 'Balasan diterima', metrics.receivedCount], ['escalated', 'Perlu tindak lanjut petugas', metrics.escalatedCount]].map(([filter, label, count]) => <button type="button" key={filter} onClick={() => { setCaseFilter(String(filter)); handleOpenTab('cases'); }}>{label}: {count}</button>)}
+              <button type="button" disabled={busy} onClick={async () => { setBusy(true); try { await runDemonstrationSimulation(episodes, loadAgentState()); setState(getDemoDashboardState()); } finally { setBusy(false); } }}>{busy ? 'Menelaah…' : 'Telaah 3 episode (simulasi)'}</button>
+            </div>
             <div className="agent-actions-group">
               <button
                 type="button"
@@ -182,6 +187,7 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
       {/* Drawer Panel */}
       <AgentActivityDrawer
         state={state}
+        caseFilter={caseFilter}
         initialTab={drawerTab}
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}

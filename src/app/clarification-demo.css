@@ -1,0 +1,44 @@
+.clarification-panel-section { margin: 24px 0; padding: 24px; border: 1px solid #365653; border-radius: 18px; background: #102524; color: #e4f0ee; min-width: 0; overflow-wrap: anywhere; }
+.clarification-panel-section h3 { font-size: 20px; font-weight: 700; }
+.clarification-panel-section .section-title { color: #b9f3df; }
+.agent-bar-bottom { flex-wrap: wrap; }
+.agent-cards-row { flex-basis: 100%; }
+.outbox-card { margin: 12px 0; overflow-wrap: anywhere; }
+.outbox-card a { color: #17614d !important; }
+.report-toolbar, .toolbar-left, .toolbar-actions, .doc-header { flex-wrap: wrap; }
+@media (max-width: 600px) { .report-document { padding: 18px; } .doc-grid-2, .doc-evidence-wrap { grid-template-columns: minmax(0, 1fr); } .agent-brand-col > div { flex-wrap: wrap; } }
+.clarification-panel-section h4 { font-weight: 650; }
+.clarification-panel-section p { margin: 8px 0; line-height: 1.65; }
+.clarification-panel-section button, .demo-chips button, .outbox-card button { border: 1px solid #527972; border-radius: 9px; padding: 10px 14px; background: #193c36; color: #edf8f5; min-height: 44px; white-space: normal; text-align: left; }
+.clarification-panel-section button:hover, .demo-chips button:hover { background: #28594f; }
+.clarification-panel-section button:disabled { opacity: .45; cursor: not-allowed; }
+.clarification-panel-section :focus-visible { outline: 3px solid #83d9c1; outline-offset: 3px; }
+.badge-sim-poc, .case-status-badge, .fixture-badge, .msg-status-pill, .role-tag { display: inline-block; border-radius: 7px; padding: 4px 8px; font-size: 12px; background: #28534b; margin: 3px; }
+.section-desc, .sender-email, .msg-recipient, .msg-date, .summary-date, .closure-time { font-size: 12px; color: #b5ceca; }
+.fixture-selector-grid, .summary-grid, .summary-check-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.fixture-choice-btn.selected { outline: 2px solid #7cdebd; background: #28594f; }
+.choice-top, .case-actions-toolbar, .demo-chips, .case-parties-row, .msg-meta-right, .msg-attachments { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.case-actions-toolbar { padding: 16px 0; border-bottom: 1px solid #365653; margin-bottom: 18px; }
+.case-header, .case-closed-banner, .agent-summary-box, .clarification-unstarted-card { padding: 18px; background: #162f2c; border-radius: 12px; margin: 14px 0; }
+.thread-message-card { border: 1px solid #42625c; border-left: 4px solid #73bcb0; border-radius: 12px; padding: 18px; margin: 16px 0; background: #132d29; }
+.thread-message-card.inbound { border-left-color: #ebbb69; background: #25322c; }
+.msg-header, .msg-sender-info { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.msg-subject { margin-top: 14px; }
+.msg-body p { white-space: pre-wrap; }
+.thread-event-badge { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; color: #f0c889; }
+.summary-grid, .summary-check-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.check-block li { display: flex; gap: 8px; margin: 8px 0; }
+.summary-recommendation { padding-top: 12px; border-top: 1px solid #42625c; }
+.closure-modal-overlay { position: fixed; inset: 0; z-index: 1500; background: #000a; display: grid; place-items: center; padding: 16px; }
+.closure-modal-card { width: min(620px, 100%); max-height: 90dvh; overflow-y: auto; background: #15322d; padding: 24px; border-radius: 16px; }
+.closure-form-group { margin: 18px 0; }
+.closure-form-group label { display: block; margin-bottom: 8px; }
+.closure-form-group select, .closure-form-group textarea { width: 100%; padding: 12px; border-radius: 8px; background: #09221d; color: white; border: 1px solid #527972; }
+.closure-modal-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
+.doc-clarification { padding: 18px; border: 1px solid #9ca3af; margin-bottom: 20px; color: #12352c; }
+.doc-clarification p { margin: 8px 0; }
+.outbox-card a { display: block; padding: 8px 0; color: #7cdebd; }
+.demo-chips { margin: 10px 0; font-size: 12px; }
+@media (max-width: 700px) { .clarification-panel-section { padding: 14px; } .fixture-selector-grid, .summary-grid, .summary-check-row { grid-template-columns: minmax(0, 1fr); } .thread-message-card { padding: 12px; } .agent-bar-bottom { flex-wrap: wrap; } }
+@media print { .doc-clarification { break-inside: avoid; } }
+@media (prefers-reduced-motion: reduce) { .clarification-panel-section * { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

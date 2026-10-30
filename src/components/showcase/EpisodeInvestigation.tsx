@@ -57,6 +57,7 @@ import BrandLogo from './BrandLogo';
 import CaseDetails from './CaseDetails';
 import { investigationBackHref } from '@/lib/map-overview';
 import SigaraIndexCard from './index/SigaraIndexCard';
+import ClarificationPanel from './ClarificationPanel';
 import InlineGeoAIEvidence from './index/InlineGeoAIEvidence';
 import PillarBreakdown from './index/PillarBreakdown';
 import IndexDataFlow from './index/IndexDataFlow';
@@ -815,6 +816,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
           geoaiPillar={indexExplanation.pillars.find((p) => p.id === 'geoai')}
           mode={indexMode}
         />
+        <ClarificationPanel key={episode.id} episode={episode} />
       </main>
 
       {aboutOpen && (

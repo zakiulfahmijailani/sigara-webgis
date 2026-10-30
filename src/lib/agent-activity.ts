@@ -1,5 +1,7 @@
+import { readDemoStorage, writeDemoStorage } from './demo-storage';
 import type { Episode } from './showcase';
-import { getNeonGeoAIImagePath } from './geoai-storage';
+import { getPrimaryEvidenceForEpisode } from './geoai-evidence-v4';
+import type { ClarificationCase } from './clarification-demo-types';
 
 export type InitialCategory = 'high' | 'medium' | 'low' | 'unknown';
 export type GeoAIEligibility = 'eligible' | 'skipped' | 'unknown';
@@ -51,6 +53,8 @@ export type AgentReport = {
   evidenceFileName?: string;
   evidenceImageUrl?: string;
   isSimulation: boolean;
+  clarification?: ClarificationCase;
+  revision?: number;
 };
 
 export type AgentActivityLog = {
@@ -99,7 +103,7 @@ export type AgentActivityState = {
 };
 
 export const INITIAL_MODEL_VERSION = 'v1.0-master-proximity';
-export const AGENT_STORAGE_KEY = 'sigara-agent-activity-v3';
+export const AGENT_STORAGE_KEY = 'sigara-agent-activity-v4';
 
 /**
  * Determine eligibility based STRICTLY on INITIAL index and category.
@@ -121,7 +125,7 @@ export function getEpisodeEligibility(
     };
   }
 
-  if (episode.cat === 'TINGGI_SIM' || initialIndex > 60) {
+  if (initialIndex > 60) {
     return {
       initialIndex,
       initialCategory: 'high',
@@ -131,7 +135,7 @@ export function getEpisodeEligibility(
     };
   }
 
-  if (episode.cat === 'SEDANG_SIM' || (initialIndex > 30 && initialIndex <= 60)) {
+  if (initialIndex > 30 && initialIndex <= 60) {
     return {
       initialIndex,
       initialCategory: 'medium',
@@ -150,293 +154,14 @@ export function getEpisodeEligibility(
   };
 }
 
-/**
- * Get initial state populated with realistic automated GeoAI agent metrics.
- * Runs autonomously in the background across 364 high-risk episodes in NTT.
- */
+/** New POC sessions have no completed reviews, reports, or simulated sends. */
 export function getInitialAgentState(): AgentActivityState {
-  const defaultReviewed: Record<string, ReviewedEpisodeRecord> = {
-    'EP-001': {
-      episodeId: 'EP-001',
-      initialIndex: 84.5,
-      initialCategory: 'high',
-      eligibility: 'eligible',
-      eligibilityReason: 'Indeks awal tinggi (>60) — prioritas penelaahan GeoAI koridor NTT.',
-      reviewedIndex: 84.5,
-      reviewedCategory: 'high',
-      reviewStatus: 'completed',
-      reviewMode: 'actual',
-      timestamp: '30 Okt 2026, 16.30 WITA',
-      findings: 'Terdeteksi anomali rujukan bypass faskes rujukan terdekat saat kondisi cuaca ekstrem / banjir rob pesisir di koridor Sikka.',
-      isNewPriority: true,
-      priorityReason: 'Kondisi cuaca ekstrem memicu bypass rujukan; selisih waktu proksi +45 mnt.',
-      region: 'Kab. Sikka',
-      fromName: 'Puskesmas Wolomarang',
-      toName: 'RSUD Dr. T.C. Hillers',
-      altName: 'Klinik Pratama St. Elisabeth',
-    },
-    'EP-002': {
-      episodeId: 'EP-002',
-      initialIndex: 88.0,
-      initialCategory: 'high',
-      eligibility: 'eligible',
-      eligibilityReason: 'Indeks awal tinggi (>60) — prioritas penelaahan GeoAI koridor NTT.',
-      reviewedIndex: 88.0,
-      reviewedCategory: 'high',
-      reviewStatus: 'completed',
-      reviewMode: 'actual',
-      timestamp: '30 Okt 2026, 16.15 WITA',
-      findings: 'Rujukan melewati faskes tipe C terdekat menuju RSUP Kupang dengan rasio waktu proksi 1.85x.',
-      isNewPriority: true,
-      priorityReason: 'Rasio selisih waktu proksi tinggi terhadap faskes alternatif terdekat yang memadai.',
-      region: 'Kota Kupang',
-      fromName: 'Puskesmas Oesao',
-      toName: 'RSUD Prof. W.Z. Johannes',
-      altName: 'RS Tingkat IV Wirasakti',
-    },
-    'EP-003': {
-      episodeId: 'EP-003',
-      initialIndex: 79.2,
-      initialCategory: 'high',
-      eligibility: 'eligible',
-      eligibilityReason: 'Indeks awal tinggi (>60) — prioritas penelaahan GeoAI koridor NTT.',
-      reviewedIndex: 79.2,
-      reviewedCategory: 'high',
-      reviewStatus: 'completed',
-      reviewMode: 'actual',
-      timestamp: '30 Okt 2026, 15.45 WITA',
-      findings: 'Kandidat rujukan darurat kepulauan; waktu tempuh terverifikasi sesuai kondisi jalan perbukitan.',
-      isNewPriority: false,
-      region: 'Kab. Manggarai Barat',
-      fromName: 'Puskesmas Labuan Bajo',
-      toName: 'RS Siloam Labuan Bajo',
-      altName: 'RSUD Komodo',
-    },
-    'EP-004': {
-      episodeId: 'EP-004',
-      initialIndex: 81.4,
-      initialCategory: 'high',
-      eligibility: 'eligible',
-      eligibilityReason: 'Indeks awal tinggi (>60) — prioritas penelaahan GeoAI koridor NTT.',
-      reviewedIndex: 81.4,
-      reviewedCategory: 'high',
-      reviewStatus: 'completed',
-      reviewMode: 'actual',
-      timestamp: '30 Okt 2026, 15.10 WITA',
-      findings: 'Rujukan perbatasan Belu dengan rute jalan berkelok; rasio alternatif terkonfirmasi.',
-      isNewPriority: false,
-      region: 'Kab. Belu',
-      fromName: 'Puskesmas Atambua Selatan',
-      toName: 'RSUD Mgr. Gabriel Manek SVD',
-      altName: 'RS Marianum Halilulik',
-    },
-    'EP-005': {
-      episodeId: 'EP-005',
-      initialIndex: 76.8,
-      initialCategory: 'high',
-      eligibility: 'eligible',
-      eligibilityReason: 'Indeks awal tinggi (>60) — prioritas penelaahan GeoAI koridor NTT.',
-      reviewedIndex: 76.8,
-      reviewedCategory: 'high',
-      reviewStatus: 'completed',
-      reviewMode: 'actual',
-      timestamp: '30 Okt 2026, 14.50 WITA',
-      findings: 'Penelaahan koridor Ende-Nangapanda; hambatan topografi perbukitan memvalidasi rute.',
-      isNewPriority: false,
-      region: 'Kab. Ende',
-      fromName: 'Puskesmas Kota Ende',
-      toName: 'RSUD Ende',
-      altName: 'RS Santo Antonius Jopu',
-    },
-    'EP-006': {
-      episodeId: 'EP-006',
-      initialIndex: 82.1,
-      initialCategory: 'high',
-      eligibility: 'eligible',
-      eligibilityReason: 'Indeks awal tinggi (>60) — prioritas penelaahan GeoAI koridor NTT.',
-      reviewedIndex: 82.1,
-      reviewedCategory: 'high',
-      reviewStatus: 'completed',
-      reviewMode: 'actual',
-      timestamp: '30 Okt 2026, 14.20 WITA',
-      findings: 'Koridor kepulauan Flores Timur; penyeberangan laut terdata pada sistem rujukan.',
-      isNewPriority: false,
-      region: 'Kab. Flores Timur',
-      fromName: 'Puskesmas Larantuka',
-      toName: 'RSUD dr. Hendrikus Fernandez',
-      altName: 'RS Pratama Adonara',
-    },
-  };
-
-  const defaultReports: Record<string, AgentReport> = {
-    'RPT-EP-001': {
-      id: 'RPT-EP-001',
-      episodeId: 'EP-001',
-      title: 'Laporan Penelaahan Spasial Episode EP-001',
-      createdAt: '30 Okt 2026, 16.30 WITA',
-      initialIndex: 84.5,
-      initialCategory: 'high',
-      fromName: 'Puskesmas Wolomarang',
-      toName: 'RSUD Dr. T.C. Hillers',
-      altName: 'Klinik Pratama St. Elisabeth',
-      proxyDistanceKm: 14.2,
-      timeRatio: 1.65,
-      summary: 'Episode rujukan dari Puskesmas Wolomarang menuju RSUD Dr. T.C. Hillers memiliki indeks risiko 84.5/100. Analisis penginderaan jauh mendeteksi genangan banjir pesisir yang menghambat akses koridor normal, mengonfirmasi urgensi rute alternatif.',
-      recommendations: [
-        'Verifikasi alasan klinis dan riwayat cuaca/akses faskes pada tanggal rujukan.',
-        'Pertahankan status rujukan terkonfirmasi dengan justifikasi bencana hidrometeorologi.',
-        'Gunakan citra satelit resolusi tinggi sebagai lampiran bukti klarifikasi.',
-      ],
-      evidenceFileName: '01_NTT-01_banjir_A_v4.png',
-      evidenceImageUrl: getNeonGeoAIImagePath('01_NTT-01_banjir_A_v4.png'),
-      isSimulation: false,
-    },
-    'RPT-EP-002': {
-      id: 'RPT-EP-002',
-      episodeId: 'EP-002',
-      title: 'Laporan Penelaahan Spasial Episode EP-002',
-      createdAt: '30 Okt 2026, 16.15 WITA',
-      initialIndex: 88.0,
-      initialCategory: 'high',
-      fromName: 'Puskesmas Oesao',
-      toName: 'RSUD Prof. W.Z. Johannes',
-      altName: 'RS Tingkat IV Wirasakti',
-      proxyDistanceKm: 32.8,
-      timeRatio: 1.85,
-      summary: 'Episode rujukan dari Puskesmas Oesao menuju RSUD Prof. W.Z. Johannes memiliki indeks risiko 88.0/100. Terdapat faskes alternatif terdekat yang layak dengan rasio waktu proksi 1.85x.',
-      recommendations: [
-        'Konfirmasi ketersediaan tempat tidur dan dokter spesialis di RS rujukan alternatif.',
-        'Minta klarifikasi faskes perujuk mengenai alasan bypass rujukan primer.',
-        'Sampaikan rekomendasi review berkas klaim ke tim verifikator cabang Kupang.',
-      ],
-      evidenceFileName: '05_NTT-04_longsor_A_v4.png',
-      evidenceImageUrl: getNeonGeoAIImagePath('05_NTT-04_longsor_A_v4.png'),
-      isSimulation: false,
-    },
-    'RPT-EP-003': {
-      id: 'RPT-EP-003',
-      episodeId: 'EP-003',
-      title: 'Laporan Penelaahan Spasial Episode EP-003',
-      createdAt: '30 Okt 2026, 15.45 WITA',
-      initialIndex: 79.2,
-      initialCategory: 'high',
-      fromName: 'Puskesmas Labuan Bajo',
-      toName: 'RS Siloam Labuan Bajo',
-      altName: 'RSUD Komodo',
-      proxyDistanceKm: 18.5,
-      timeRatio: 1.25,
-      summary: 'Episode rujukan Labuan Bajo menunjukkan kecocokan topografi dengan kondisi perbukitan pulau Flores. Tidak ditemukan anomali rute yang signifikan.',
-      recommendations: [
-        'Klaim memenuhi indikator kewajaran transportasi dan keterjangkauan spasial.',
-        'Arsipkan berkas telaah ke repositori hasil verifikasi otomatis.',
-      ],
-      evidenceFileName: '03_NTT-03_banjir_A_v4.png',
-      evidenceImageUrl: getNeonGeoAIImagePath('03_NTT-03_banjir_A_v4.png'),
-      isSimulation: false,
-    },
-  };
-
-  const defaultNotifications: AgentNotification[] = [
-    {
-      id: 'NOTIF-001',
-      episodeId: 'EP-001',
-      recipientRole: 'Tim Monev BPJS Cabang Maumere',
-      channel: 'Sistem Monitoring Klaim BPJS Kesehatan',
-      status: 'sent',
-      subject: 'Hasil Penelaahan Spasial Otomatis: Episode EP-001 (Sikka)',
-      body: 'GeoAI Agent telah selesai menelaah koridor rujukan Puskesmas Wolomarang menuju RSUD Dr. T.C. Hillers (Indeks 84.5). Bukti spasial dan dokumen telaah telah diterbitkan.',
-      createdAt: '30 Okt 2026, 16.30 WITA',
-    },
-    {
-      id: 'NOTIF-002',
-      episodeId: 'EP-002',
-      recipientRole: 'Tim Verifikasi Cabang Kupang',
-      channel: 'Portal Verifikasi Klaim BPJS Kesehatan',
-      status: 'sent',
-      subject: 'Perhatian: Episode Prioritas Baru EP-002 Memerlukan Konfirmasi Klinis',
-      body: 'Deteksi anomali bypass rujukan dengan rasio waktu proksi 1.85x pada koridor Oesao - Kupang. Silakan tinjau berkas laporan telaah.',
-      createdAt: '30 Okt 2026, 16.15 WITA',
-    },
-    {
-      id: 'NOTIF-003',
-      episodeId: 'EP-004',
-      recipientRole: 'Dinas Kesehatan Kab. Belu',
-      channel: 'Sistem Informasi Rujukan Terintegrasi (SISRUTE)',
-      status: 'simulated_queue',
-      subject: 'Rekapitulasi Keterjangkauan Faskes Perbatasan Belu (Otomatis)',
-      body: 'Analisis keterjangkauan faskes wilayah perbatasan Belu telah diperbarui dengan data jaringan jalan terkini.',
-      createdAt: '30 Okt 2026, 15.10 WITA',
-    },
-  ];
-
-  const defaultLogs: AgentActivityLog[] = [
-    {
-      id: 'LOG-001',
-      timestamp: '30 Okt 2026, 18.00 WITA',
-      stepName: 'Siklus Otomatis Selesai',
-      episodeId: 'NTT-BATCH-AUTO',
-      mode: 'actual',
-      status: 'completed',
-      detail: 'Siklus analisis berkala GeoAI selesai. Evaluasi 364 episode berisiko tinggi di 22 kabupaten/kota NTT.',
-    },
-    {
-      id: 'LOG-002',
-      timestamp: '30 Okt 2026, 17.55 WITA',
-      stepName: 'Penilaian Rasio Waktu Proksi',
-      episodeId: 'NTT-BATCH-AUTO',
-      mode: 'actual',
-      status: 'completed',
-      detail: 'Kalkulasi jarak tempuh jaringan jalan dan rasio faskes alternatif terdekat selesai diperbarui.',
-    },
-    {
-      id: 'LOG-003',
-      timestamp: '30 Okt 2026, 17.50 WITA',
-      stepName: 'Pengambilan Citra Satelit & DEM',
-      episodeId: 'NTT-BATCH-AUTO',
-      mode: 'actual',
-      status: 'completed',
-      detail: 'Sinkronisasi layer penginderaan jauh dari Neon Object Storage berhasil untuk seluruh koridor prioritas.',
-    },
-    {
-      id: 'LOG-004',
-      timestamp: '30 Okt 2026, 17.45 WITA',
-      stepName: 'Penerbitan Laporan & Notifikasi',
-      episodeId: 'NTT-BATCH-AUTO',
-      mode: 'actual',
-      status: 'completed',
-      detail: 'Total 402 laporan ringkas tersedia (+171 hari ini), 289 notifikasi tersampaikan ke stakeholder terkait.',
-    },
-    {
-      id: 'LOG-005',
-      timestamp: '30 Okt 2026, 16.30 WITA',
-      stepName: 'Deteksi Prioritas Baru',
-      episodeId: 'EP-001',
-      mode: 'actual',
-      status: 'completed',
-      detail: 'Identifikasi anomali cuaca hidrometeorologi Sikka; laporan RPT-EP-001 diterbitkan secara otomatis.',
-    },
-  ];
-
   return {
-    version: '3.0.0',
-    systemStatus: 'ready',
-    lastRunTimestamp: '2 jam lalu',
-    baselineTimestamp: '30 Okt 2026, 16.00 WITA',
-    nextRunCountdown: '22j 10m',
-    stats: {
-      episodesReviewed: 364,
-      episodesReviewedToday: 18,
-      priorityFindings: 24,
-      criticalNew: 1,
-      reportsGenerated: 402,
-      reportsToday: 171,
-      stakeholdersNotified: 289,
-      notificationsPending: 48,
-    },
-    reviewedEpisodes: defaultReviewed,
-    reports: defaultReports,
-    logs: defaultLogs,
-    notifications: defaultNotifications,
+    version: '4.0.0', systemStatus: 'ready', lastRunTimestamp: null,
+    baselineTimestamp: null, nextRunCountdown: '',
+    stats: { episodesReviewed: 0, episodesReviewedToday: 0, priorityFindings: 0,
+      criticalNew: 0, reportsGenerated: 0, reportsToday: 0, stakeholdersNotified: 0, notificationsPending: 0 },
+    reviewedEpisodes: {}, reports: {}, logs: [], notifications: [],
   };
 }
 
@@ -448,10 +173,10 @@ export function loadAgentState(): AgentActivityState {
     return getInitialAgentState();
   }
   try {
-    const raw = window.localStorage.getItem(AGENT_STORAGE_KEY);
+    const raw = readDemoStorage(AGENT_STORAGE_KEY);
     if (!raw) return getInitialAgentState();
     const parsed = JSON.parse(raw);
-    if (parsed && parsed.version === '3.0.0' && parsed.stats && parsed.reviewedEpisodes && parsed.reports) {
+    if (parsed && parsed.version === '4.0.0' && parsed.stats && parsed.reviewedEpisodes && parsed.reports) {
       return parsed as AgentActivityState;
     }
   } catch {
@@ -466,7 +191,8 @@ export function loadAgentState(): AgentActivityState {
 export function saveAgentState(state: AgentActivityState): void {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(AGENT_STORAGE_KEY, JSON.stringify(state));
+    writeDemoStorage(AGENT_STORAGE_KEY, JSON.stringify(state));
+    window.dispatchEvent(new Event('sigara-demo-change'));
   } catch (err) {
     console.warn('Failed to save agent state to localStorage:', err);
   }
@@ -508,9 +234,9 @@ export function createEpisodeReport(
       'Periksa apakah pengalihan rujukan dipicu oleh kendala transportasi lokal atau kondisi darurat pasien.',
       'Gunakan bukti spasial dan penginderaan jauh sebagai bahan telaah objektif dalam klarifikasi faskes.',
     ],
-    evidenceFileName: '01_NTT-01_banjir_A_v4.png',
-    evidenceImageUrl: getNeonGeoAIImagePath('01_NTT-01_banjir_A_v4.png'),
-    isSimulation: false,
+    evidenceFileName: getPrimaryEvidenceForEpisode(episode)?.primaryEvidence.fileName,
+    evidenceImageUrl: getPrimaryEvidenceForEpisode(episode)?.primaryEvidence.imageUrl,
+    isSimulation: true,
   };
 }
 
@@ -523,15 +249,11 @@ export async function runDemonstrationSimulation(
   currentState: AgentActivityState,
   onStepProgress?: (step: number, total: number, message: string) => void
 ): Promise<AgentActivityState> {
-  const targetEpisodes = highEpisodes.slice(0, 3);
+  const targetEpisodes = highEpisodes.filter(ep => getEpisodeEligibility(ep).eligibility === 'eligible').slice(0, 3);
   if (!targetEpisodes.length) return currentState;
 
   const now = new Date();
-  const timestampStr = now.toLocaleString('id-ID', {
-    timeZone: 'Asia/Jakarta',
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  });
+  const timestampStr = now.toISOString();
 
   const updated = {
     ...currentState,
@@ -558,8 +280,8 @@ export async function runDemonstrationSimulation(
   const updatedReports = { ...updated.reports };
   const newLogs: AgentActivityLog[] = [...updated.logs];
 
-  targetEpisodes.forEach((ep, idx) => {
-    const isNew = idx === 0;
+  targetEpisodes.forEach((ep) => {
+    const isNew = false;
     const record: ReviewedEpisodeRecord = {
       episodeId: ep.id,
       initialIndex: ep.fraudIdx,
@@ -569,15 +291,13 @@ export async function runDemonstrationSimulation(
       reviewedIndex: ep.fraudIdx,
       reviewedCategory: 'high',
       reviewStatus: 'completed',
-      reviewMode: 'actual',
+      reviewMode: 'simulation',
       timestamp: timestampStr,
       findings: ep.altId
         ? `Terdapat faskes alternatif terdekat (${ep.altOutside ? 'Luar NTT' : ep.altName}). Rasio waktu tempuh ${ep.timeRatio ? ep.timeRatio.toFixed(2) + 'x' : 'tinggi'}.`
         : 'Fasilitas tujuan teridentifikasi sesuai proksi terdekat.',
       isNewPriority: isNew,
-      priorityReason: isNew
-        ? 'Selisih waktu rujukan signifikan (+45 mnt) dengan keberadaan faskes rujukan alternatif yang layak.'
-        : undefined,
+      priorityReason: undefined,
       region: ep.kabAsal,
       fromName: ep.fromName,
       toName: ep.toName,
@@ -586,8 +306,8 @@ export async function runDemonstrationSimulation(
 
     updatedReviewed[ep.id] = record;
 
-    if (!updatedReports[ep.id]) {
-      updatedReports[ep.id] = createEpisodeReport(ep, record);
+    if (!updatedReports[`RPT-${ep.id}`]) {
+      updatedReports[`RPT-${ep.id}`] = createEpisodeReport(ep, record);
     }
 
     newLogs.unshift({
@@ -595,7 +315,7 @@ export async function runDemonstrationSimulation(
       timestamp: timestampStr,
       stepName: 'Penelaahan Selesai',
       episodeId: ep.id,
-      mode: 'actual',
+      mode: 'simulation',
       status: 'completed',
       detail: `Selesai menelaah koridor ${ep.fromName} → ${ep.toName}. Status: ${isNew ? 'Prioritas Baru' : 'Selesai'}`,
     });
@@ -607,7 +327,7 @@ export async function runDemonstrationSimulation(
     ...updated,
     systemStatus: 'ready',
     lastRunTimestamp: timestampStr,
-    baselineTimestamp: updated.baselineTimestamp || timestampStr,
+    baselineTimestamp: updated.baselineTimestamp,
     reviewedEpisodes: updatedReviewed,
     reports: updatedReports,
     logs: trimmedLogs,

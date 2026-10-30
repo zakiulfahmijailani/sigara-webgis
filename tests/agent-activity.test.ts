@@ -79,20 +79,14 @@ test('AGENT-2: Penurunan skor setelah penelaahan tidak membatalkan kelayakan awa
   assert.equal(reviewedRecord.reviewedCategory, 'low');
 });
 
-test('AGENT-3: State awal memuat metrik operasional otomatis GeoAI Agent', () => {
+test('AGENT-3: Demo baru dimulai kosong tanpa klaim operasional', () => {
   const state = getInitialAgentState();
-  assert.equal(state.stats.episodesReviewed, 364, 'Default episode ditelaah harus 364 (total episode tinggi NTT)');
-  assert.equal(state.stats.priorityFindings, 24, 'Default prioritas baru harus 24');
-  assert.equal(state.stats.reportsGenerated, 402, 'Default laporan dibuat harus 402');
-  assert.equal(state.stats.reportsToday, 171, 'Default laporan hari ini harus +171');
-  assert.equal(state.stats.stakeholdersNotified, 289, 'Default notifikasi stakeholder harus 289');
-  assert.equal(state.stats.notificationsPending, 48, 'Default notifikasi antrean harus 48');
-  assert.equal(state.lastRunTimestamp, '2 jam lalu');
-  assert.equal(state.nextRunCountdown, '22j 10m');
-  assert.ok(Object.keys(state.reviewedEpisodes).length > 0, 'Daftar episode ditelaah terisi');
-  assert.ok(Object.keys(state.reports).length > 0, 'Daftar laporan terisi');
-  assert.ok(state.notifications.length > 0, 'Daftar notifikasi terisi');
-  assert.ok(state.logs.length > 0, 'Log aktivitas otomatis terisi');
+  assert.ok(Object.values(state.stats).every(n => n === 0));
+  assert.deepEqual(state.reviewedEpisodes, {});
+  assert.deepEqual(state.reports, {});
+  assert.deepEqual(state.notifications, []);
+  assert.deepEqual(state.logs, []);
+  assert.equal(state.baselineTimestamp, null);
 });
 
 test('AGENT-4: Deduplikasi: Menjalankan ulang penelaahan tidak menggandakan episode unik atau berkas laporan', async () => {
