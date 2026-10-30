@@ -381,15 +381,15 @@ export default function IndexDataFlow({
                   onClick={onNavigateToGeoAI}
                 >
                   <Sparkles size={14} />
-                  <span>Lihat bukti GeoAI pada episode ini</span>
+                  <span>Lihat bukti GeoAI di bawah</span>
                   <ArrowRight size={14} />
                 </button>
               ) : (
                 <span className="geoai-unavail-note">
                   <Info size={13} />
                   {hasGeoAIImage
-                    ? 'Buka tab Bukti GeoAI untuk memeriksa citra Sentinel-2 dan overlay spektral.'
-                    : 'Episode ini belum memiliki aset raster ilustrasi penginderaan jauh.'}
+                    ? 'Lihat bagian Bukti GeoAI di bawah untuk memeriksa ilustrasi analisis spasial.'
+                    : 'Episode ini belum memiliki aset ilustrasi penginderaan jauh.'}
                 </span>
               )}
             </div>

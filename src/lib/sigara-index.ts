@@ -264,17 +264,23 @@ export function buildEpisodeExplanation(
       geoaiStatusLabel = 'Tersedia (Simulasi POC)';
     } else if (episode.hasGeoAI && primaryGeoAI) {
       geoaiAvail = 'available';
-      // If road proxy was intersected by flood/landslide, it justifies referral -> lower risk
-      // If no detection was found while alternate was bypassed -> higher risk
-      if (primaryGeoAI.nearProxyIntersection && !primaryGeoAI.noRealDetection) {
+      // If road proxy was intersected by simulated flood/landslide, it justifies referral -> lower risk
+      // If outside proxy corridor or insufficient data -> separate explicit handling (brief §8)
+      if (primaryGeoAI.nearProxyIntersection) {
         geoaiScore = 30.0; // Justified access obstacle
-        geoaiStatusLabel = 'Terdeteksi paparan koridor (justifikasi akses)';
-      } else if (primaryGeoAI.noRealDetection) {
-        geoaiScore = 65.0; // Alternate unobstructed, bypass unjustified
-        geoaiStatusLabel = 'Bukan deteksi aktual / tidak ada rintangan';
+        geoaiStatusLabel = 'Skenario rintangan koridor akses (justifikasi rujukan)';
+      } else if (primaryGeoAI.kind === 'pembanding') {
+        const isInsufficient = primaryGeoAI.scenario === 'B' || primaryGeoAI.mode === 'tanpa_data' || primaryGeoAI.title?.toLowerCase().includes('cukup');
+        if (isInsufficient) {
+          geoaiScore = 50.0;
+          geoaiStatusLabel = 'Observasi tidak memadai / bukti belum cukup';
+        } else {
+          geoaiScore = 60.0;
+          geoaiStatusLabel = 'Kondisi stabil tanpa perubahan spektral';
+        }
       } else {
-        geoaiScore = 45.0;
-        geoaiStatusLabel = 'Tersedia pada cakupan spasial';
+        geoaiScore = 65.0; // Outside corridor, does not justify bypass
+        geoaiStatusLabel = 'Rintangan di luar koridor proksi alternatif';
       }
     } else {
       geoaiScore = null;

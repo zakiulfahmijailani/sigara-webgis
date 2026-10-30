@@ -104,17 +104,12 @@ fs.mkdirSync(out, { recursive: true });
 
   await page.screenshot({ path: path.join(out, '06-episode-detail-multipillar-demo.png'), fullPage: true });
 
-  console.log('--- TEST 4: Evidence Tab & GeoAI Metric Breakdown ---');
-  await page.getByRole('tab', { name: /Bukti GeoAI/ }).click();
-  await page.waitForTimeout(500);
+  console.log('--- TEST 4: Inline GeoAI Evidence Below Sankey ---');
+  const inlineGeoAI = page.locator('#geoai-evidence');
+  assert.ok(await inlineGeoAI.isVisible(), 'Inline GeoAI evidence should be rendered below Sankey');
 
-  // Verify "Lihat kontribusi ke indeks & Sankey" button
-  const viewSankeyBtn = page.getByRole('button', { name: /Lihat kontribusi ke indeks/ }).first();
-  assert.ok(await viewSankeyBtn.isVisible(), 'Button "Lihat kontribusi ke indeks & Sankey" should be visible in GeoAI viewer');
-
-  // Verify GeoAIMetricBreakdown
-  const metricBreakdown = await page.locator('.geoai-metric-breakdown').isVisible();
-  assert.ok(metricBreakdown, 'GeoAIMetricBreakdown should be rendered in evidence tab');
+  const evidenceImg = page.locator('.evidence-main-img');
+  assert.ok(await evidenceImg.isVisible(), 'Evidence main image should be rendered');
 
   await page.screenshot({ path: path.join(out, '07-episode-geoai-breakdown.png'), fullPage: true });
 

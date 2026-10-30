@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -54,10 +54,10 @@ import {
 } from '@/lib/showcase';
 import AppHeader from './AppHeader';
 import BrandLogo from './BrandLogo';
-import GeoAIViewer from './GeoAIViewer';
 import CaseDetails from './CaseDetails';
 import { investigationBackHref } from '@/lib/map-overview';
 import SigaraIndexCard from './index/SigaraIndexCard';
+import InlineGeoAIEvidence from './index/InlineGeoAIEvidence';
 import PillarBreakdown from './index/PillarBreakdown';
 import IndexDataFlow from './index/IndexDataFlow';
 import SourceVariableDetails from './index/SourceVariableDetails';
@@ -79,7 +79,7 @@ type Props = {
   episodeId: string;
 };
 
-type InvestigationTab = 'summary' | 'evidence' | 'visits' | 'methods';
+type InvestigationTab = 'summary' | 'visits' | 'methods';
 
 const simulationAgents = [
   { name: 'Agen Data & Wilayah', action: 'Memeriksa cakupan master rujukan NTT', icon: Database },
@@ -100,11 +100,23 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
   }, [data.episodes, episodeId]);
 
   // Tab state (query param or default to summary)
-  const paramTab = searchParams.get('tab') as InvestigationTab | null;
+  const rawTab = searchParams.get('tab');
   const activeTab: InvestigationTab =
-    paramTab && ['summary', 'evidence', 'visits', 'methods'].includes(paramTab)
-      ? paramTab
+    rawTab === 'visits' || rawTab === 'methods'
+      ? rawTab
       : 'summary';
+
+  // Normalize legacy ?tab=evidence URL and scroll to inline evidence section
+  useEffect(() => {
+    if (typeof window !== 'undefined' && searchParams.get('tab') === 'evidence') {
+      const current = new URL(window.location.href);
+      current.searchParams.delete('tab');
+      window.history.replaceState({}, '', current.pathname + (current.search ? current.search : ''));
+      setTimeout(() => {
+        document.getElementById('geoai-evidence')?.scrollIntoView({ behavior: 'smooth' });
+      }, 150);
+    }
+  }, [searchParams]);
 
   // GeoAI State
   const [activeGeoAIImage, setActiveGeoAIImage] = useState<GeoAIImage | null>(null);
@@ -131,9 +143,6 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
   const [agentCompleted, setAgentCompleted] = useState(false);
   const simTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => () => { if (simTimer.current) clearInterval(simTimer.current); }, []);
-  useEffect(() => {
-    if (activeTab === 'evidence' && episode?.hasGeoAI) setShowOverlay(true);
-  }, [activeTab, episode?.hasGeoAI]);
 
   // Sync GeoAI image when episode or tab changes
   useEffect(() => {
@@ -153,10 +162,6 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
 
   // Auto-enable overlay when switching to evidence tab
   const handleTabChange = (tab: InvestigationTab) => {
-    if (tab === 'evidence' && episode?.hasGeoAI) {
-      setShowOverlay(true);
-    }
-    // Update URL query param without full reload
     const current = new URLSearchParams(searchParams.toString());
     current.set('tab', tab);
     router.replace(`/episode/${episodeId}?${current.toString()}`, { scroll: false });
@@ -321,9 +326,9 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
 
         {/* Tab Navigation */}
         <nav className="inv-tabs" role="tablist" aria-label="Bagian penelaahan episode" onKeyDown={event => {
-          const tabs: InvestigationTab[] = ['summary', 'evidence', 'visits', 'methods'];
+          const tabs: InvestigationTab[] = ['summary', 'visits', 'methods'];
           const index = tabs.indexOf(activeTab);
-          const next = event.key === 'ArrowRight' ? (index + 1) % 4 : event.key === 'ArrowLeft' ? (index + 3) % 4 : event.key === 'Home' ? 0 : event.key === 'End' ? 3 : -1;
+          const next = event.key === 'ArrowRight' ? (index + 1) % 3 : event.key === 'ArrowLeft' ? (index + 2) % 3 : event.key === 'Home' ? 0 : event.key === 'End' ? 2 : -1;
           if (next >= 0) { event.preventDefault(); handleTabChange(tabs[next]); document.getElementById(`investigation-tab-${tabs[next]}`)?.focus(); }
         }}>
           <button
@@ -340,19 +345,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
             <span>Ringkasan Kasus</span>
           </button>
 
-          <button
-            type="button"
-            role="tab"
-            id="investigation-tab-evidence"
-            aria-controls="investigation-tab-content"
-            tabIndex={activeTab === 'evidence' ? 0 : -1}
-            aria-selected={activeTab === 'evidence'}
-            className={`inv-tab-btn ${activeTab === 'evidence' ? 'active' : ''}`}
-            onClick={() => handleTabChange('evidence')}
-          >
-            <Sparkles size={16} />
-            <span>Bukti GeoAI {episode.hasGeoAI ? '(Tersedia)' : '(Belum ada)'}</span>
-          </button>
+
 
           <button
             type="button"
@@ -552,17 +545,19 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                           </strong>
                           <p>
                             {episode.hasGeoAI
-                              ? 'Tersedia 2 skenario citra Sentinel-2 dan overlay indeks spektral bencana pada tab Bukti GeoAI.'
-                              : 'Paket POC v2 menyediakan ilustrasi citra satelit untuk 8 episode percontohan. Episode ini belum memiliki dataset raster simulasi.'}
+                              ? 'Tersedia 2 skenario ilustrasi generatif v4 dan telaah spektral indikator pada bagian Bukti GeoAI di bawah diagram aliran data.'
+                              : 'Paket ilustrasi generatif v4 mencakup 8 episode percontohan. Episode ini belum memiliki berkas ilustrasi generatif terdaftar.'}
                           </p>
                           {episode.hasGeoAI && (
                             <button
                               type="button"
                               className="view-geoai-cta"
-                              onClick={() => handleTabChange('evidence')}
+                              onClick={() => {
+                                document.getElementById('geoai-evidence')?.scrollIntoView({ behavior: 'smooth' });
+                              }}
                             >
                               <Sparkles size={13} />
-                              <span>Lihat Bukti GeoAI Episode Ini</span>
+                              <span>Lihat Bukti GeoAI di Bawah</span>
                             </button>
                           )}
                         </div>
@@ -570,35 +565,6 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-
-            {/* Bukti GeoAI Tab */}
-            {activeTab === 'evidence' && (
-              <div className="inv-evidence-pane">
-                <GeoAIViewer
-                  episode={episode}
-                  geoaiManifest={data.geoai}
-                  activeImage={activeGeoAIImage}
-                  setActiveImage={setActiveGeoAIImage}
-                  showOverlay={showOverlay}
-                  setShowOverlay={setShowOverlay}
-                  overlayOpacity={overlayOpacity}
-                  setOverlayOpacity={setOverlayOpacity}
-                  showSatelliteBackdrop={showSatelliteBackdrop}
-                  setShowSatelliteBackdrop={setShowSatelliteBackdrop}
-                  onSelectEpisode={(id) => { const next = new URLSearchParams(searchParams); next.set('tab', 'evidence'); router.push(`/episode/${id}?${next}`); }}
-                  onViewIndexContribution={() => {
-                    indexDataFlowRef.current?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                />
-                <GeoAIMetricBreakdown
-                  image={activeGeoAIImage}
-                  geoaiPillar={indexExplanation.pillars.find(p => p.id === 'geoai') || null}
-                  onScrollToSankey={() => {
-                    indexDataFlowRef.current?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                />
               </div>
             )}
 
@@ -791,8 +757,8 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                   data={data}
                   episodes={data.episodes}
                   selected={episode}
-                  activeGeoAIImage={activeTab === 'evidence' ? activeGeoAIImage : null}
-                  showOverlay={showOverlay && activeTab === 'evidence'}
+                  activeGeoAIImage={activeGeoAIImage}
+                  showOverlay={showOverlay}
                   setShowOverlay={setShowOverlay}
                   overlayOpacity={overlayOpacity}
                   setOverlayOpacity={setOverlayOpacity}
@@ -834,10 +800,19 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
             explanation={indexMode === 'multipillar_demo' ? indexExplanation : null}
             mode={indexExplanation.graphMode}
             globalTitle="DATA FLOW — TRANSPARANSI METODOLOGI"
-            onNavigateToGeoAI={episode.hasGeoAI ? () => handleTabChange('evidence') : undefined}
+            onNavigateToGeoAI={episode.hasGeoAI ? () => {
+              document.getElementById('geoai-evidence')?.scrollIntoView({ behavior: 'smooth' });
+            } : undefined}
             hasGeoAIImage={episode.hasGeoAI}
           />
         </div>
+
+        {/* Full-width Inline GeoAI Evidence section right below Data Flow */}
+        <InlineGeoAIEvidence
+          episode={episode}
+          geoaiPillar={indexExplanation.pillars.find((p) => p.id === 'geoai')}
+          mode={indexMode}
+        />
       </main>
 
       {aboutOpen && (

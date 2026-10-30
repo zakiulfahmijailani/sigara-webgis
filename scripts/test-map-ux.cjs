@@ -183,10 +183,9 @@ fs.mkdirSync(out, { recursive: true });
     await page.locator('.inv-map-frame .map-canvas canvas').waitFor();
     await page.screenshot({ path: path.join(out, '03-episode-summary.png'), fullPage: true });
 
-    await page.getByRole('tab', { name: /Bukti GeoAI/ }).click();
-    await page.waitForURL(/tab=evidence/);
-    await page.locator('.geoai-viewer-container img').first().waitFor();
-    await page.waitForFunction(() => [...document.querySelectorAll('.geoai-viewer-container img')].every(image => image.complete && image.naturalWidth > 0));
+    await page.locator('#geoai-evidence').scrollIntoViewIfNeeded();
+    await page.locator('.evidence-main-img').waitFor();
+    await page.waitForFunction(() => [...document.querySelectorAll('.evidence-main-img')].every(image => image.complete && image.naturalWidth > 0));
     await page.screenshot({ path: path.join(out, '04-episode-evidence.png'), fullPage: true });
 
     await page.getByRole('tab', { name: /Kunjungan Terkait/ }).click();
