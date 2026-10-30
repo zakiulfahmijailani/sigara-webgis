@@ -10,6 +10,7 @@ import {
   getEpisodeGeoAIStatus,
   getAllEvidence,
   getShowcaseEvidenceForEpisode,
+  getPrimaryEvidenceForEpisode,
   type GeneratedEpisodeEvidence,
 } from '../src/lib/geoai-evidence-v4';
 import { buildEpisodeExplanation } from '../src/lib/sigara-index';
@@ -218,4 +219,38 @@ test('Pemetaan acak mempertahankan pasangan asal dan provenance gambar yang dipa
     assert.equal(getShowcaseEvidenceForEpisode(changed), null, 'Bahkan gambar asal dilarang untuk kategori non-tinggi');
     assert.equal(getEpisodeGeoAIStatus(changed, direct.items[0]).isAvailable, false);
   }
+});
+
+test('NTT-V4-11: getPrimaryEvidenceForEpisode mengembalikan tepat satu gambar skenario A untuk seluruh 364 episode tinggi', () => {
+  let highCount = 0;
+  for (const ep of typedEpisodes) {
+    const primary = getPrimaryEvidenceForEpisode(ep);
+    if (ep.cat === 'TINGGI_SIM') {
+      highCount++;
+      assert.ok(primary, `Primary evidence harus tersedia untuk episode tinggi ${ep.id}`);
+      assert.equal(primary.episodeId, ep.id);
+      assert.ok(primary.primaryEvidence, `Objek primaryEvidence harus ada untuk ${ep.id}`);
+      assert.equal(primary.primaryEvidence.scenario, 'A', `Primary evidence harus selalu berskenario A untuk ${ep.id}`);
+      assert.ok(primary.primaryEvidence.imageUrl.startsWith('/api/geoai/evidence/'), 'Image URL harus mengarah ke route Neon');
+      assert.ok(new URL(primary.primaryEvidence.imageUrl, 'https://example.test').searchParams.get('v'), 'Image URL harus memiliki parameter hash');
+
+      // Determinisme
+      const repeat = getPrimaryEvidenceForEpisode(ep);
+      assert.deepEqual(repeat, primary, `Pilihan primary evidence harus stabil untuk ${ep.id}`);
+    } else {
+      assert.equal(primary, null, `Episode kategori ${ep.cat} tidak boleh memiliki primary evidence`);
+    }
+  }
+  assert.equal(highCount, 364, 'Harus ada tepat 364 episode tinggi');
+});
+
+test('NTT-V4-12: getEpisodeGeoAIStatus tidak mencantumkan kata "Skenario" pada title atau badge aktif', () => {
+  const highEp = typedEpisodes.find((e) => e.cat === 'TINGGI_SIM')!;
+  const primary = getPrimaryEvidenceForEpisode(highEp);
+  assert.ok(primary);
+
+  const status = getEpisodeGeoAIStatus(highEp, primary.primaryEvidence);
+  assert.equal(status.isAvailable, true);
+  assert.ok(!status.badgeLabel.toLowerCase().includes('skenario'), `Badge label tidak boleh ada kata skenario: ${status.badgeLabel}`);
+  assert.ok(!status.title.toLowerCase().includes('skenario'), `Title tidak boleh ada kata skenario: ${status.title}`);
 });

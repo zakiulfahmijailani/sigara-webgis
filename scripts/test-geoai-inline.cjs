@@ -25,53 +25,87 @@ fs.mkdirSync(out, { recursive: true });
   const errors = [];
   page.on('pageerror', (err) => errors.push(err.message));
 
-  console.log('--- TEST 1: Sikka Episode (290411124Y000018) Inline Evidence Below Sankey ---');
+  console.log('--- TEST 1: Sikka Episode (290411124Y000018) Single GeoAI Image & Two Tabs ---');
   await page.goto(`${base}/episode/290411124Y000018`);
   await page.waitForSelector('.investigation-main');
 
-  // Verify that GeoAI evidence is directly present on page without tab switching
+  // Verify that GeoAI evidence is directly present on page below Sankey
   const evidenceSection = page.locator('#geoai-evidence');
   assert.ok(await evidenceSection.isVisible(), 'Inline GeoAI evidence section must be visible');
 
-  // Verify section title and POC disclaimer
+  // Verify section title and POC badge
   const sectionTitle = await page.locator('.geoai-section-header h3.section-title').innerText();
   console.log('Section title:', sectionTitle);
-  assert.ok(sectionTitle.includes('Bukti GeoAI'), 'Must have Bukti GeoAI title');
+  assert.ok(sectionTitle.includes('Analisis GeoAI Episode Ini'), 'Must have Analisis GeoAI Episode Ini title');
 
   const pocBadge = await page.locator('.geoai-sim-badge').innerText();
   console.log('POC Badge:', pocBadge);
-  assert.ok(pocBadge.includes('SIMULASI POC'), 'Must have SIMULASI POC badge');
+  assert.ok(pocBadge.includes('ILUSTRASI POC'), 'Must have ILUSTRASI POC badge');
 
-  // Check Scenario A image
+  // Verify view tabs exist: [Penginderaan Jauh & GeoAI] and [Analisis Spasial]
+  const tabs = page.locator('.geoai-view-tabs .view-tab-btn');
+  assert.equal(await tabs.count(), 2, 'Must have exactly 2 local view tabs');
+  const tab0Text = await tabs.nth(0).innerText();
+  const tab1Text = await tabs.nth(1).innerText();
+  console.log('Tabs:', tab0Text, '|', tab1Text);
+  assert.ok(tab0Text.includes('Penginderaan Jauh'), 'Tab 0 must be Penginderaan Jauh');
+  assert.ok(tab1Text.includes('Analisis Spasial'), 'Tab 1 must be Analisis Spasial');
+
+  // Verify NO scenario buttons exist in UI
+  const scenarioBtnCount = await page.locator('.scenario-btn, .scenario-buttons-group').count();
+  assert.equal(scenarioBtnCount, 0, 'No scenario selector buttons should exist in UI');
+
+  // Verify single primary image (Sikka scenario A v4)
   const imgA = page.locator('.evidence-main-img');
   const srcA = await imgA.getAttribute('src');
-  console.log('Scenario A image src:', srcA);
-  assert.ok(srcA && srcA.includes('01_NTT-01_banjir_A_v4.png'), 'Must display Sikka scenario A v4 image');
+  console.log('Primary image src:', srcA);
+  assert.ok(srcA && srcA.includes('01_NTT-01_banjir_A_v4.png'), 'Must display Sikka scenario A v4 image from Neon');
 
-  // Check dimension info or aspect ratio
-  const imgBox = await imgA.boundingBox();
-  console.log('Image dimensions on screen:', imgBox ? `${imgBox.width}x${imgBox.height}` : 'null');
+  // Verify caption header says "Interpretasi Analisis" (not Skenario A)
+  const captionHead = await page.locator('.caption-head').innerText();
+  console.log('Caption head:', captionHead);
+  assert.ok(captionHead.includes('Interpretasi Analisis'), 'Must say Interpretasi Analisis');
+  assert.ok(!captionHead.includes('Skenario A'), 'Must not have Skenario A in caption header');
 
-  await page.screenshot({ path: path.join(out, '01-sikka-scenario-a.png'), fullPage: false });
+  // Verify alt text does not contain Skenario
+  const altText = await imgA.getAttribute('alt');
+  console.log('Image alt text:', altText);
+  assert.ok(!altText.toLowerCase().includes('skenario a'), 'Alt text should not contain Skenario A');
 
-  // Read master score before scenario switch
+  await page.screenshot({ path: path.join(out, '01-sikka-remote-sensing.png'), fullPage: false });
+
+  // Read master score before tab switch
   const scoreBefore = await page.locator('.score-large .value').first().innerText();
 
-  console.log('--- TEST 2: Scenario B Switch ---');
-  // Click Skenario B button
-  const scenBBtn = page.locator('.scenario-btn').filter({ hasText: 'Skenario B' });
-  await scenBBtn.click();
+  console.log('--- TEST 2: Tab Switch to Analisis Spasial ---');
+  // Click Analisis Spasial tab
+  await tabs.nth(1).click();
   await page.waitForTimeout(400);
 
-  const srcB = await imgA.getAttribute('src');
-  console.log('Scenario B image src:', srcB);
-  assert.ok(srcB && srcB.includes('02_NTT-01_banjir_B_v4.png'), 'Must display Sikka scenario B v4 image');
+  // Verify spatial panel is visible
+  const spatialPanel = page.locator('.geoai-spatial-panel');
+  assert.ok(await spatialPanel.isVisible(), 'Spatial panel must be visible');
+
+  // Verify OD corridor origin and destination
+  const originName = await page.locator('.origin-point .point-name').innerText();
+  const destName = await page.locator('.dest-point .point-name').innerText();
+  console.log('Spatial OD:', originName, '->', destName);
+  assert.ok(originName.length > 0 && destName.length > 0, 'Must show origin and destination');
+
+  // Verify metric cards
+  const metricCards = page.locator('.spatial-metric-grid .spatial-card');
+  assert.equal(await metricCards.count(), 3, 'Must render 3 spatial metric cards');
 
   // Verify master score did NOT change
   const scoreAfter = await page.locator('.score-large .value').first().innerText();
-  assert.equal(scoreBefore, scoreAfter, 'Master score must NOT change when toggling scenarios');
+  assert.equal(scoreBefore, scoreAfter, 'Master score must NOT change when switching tabs');
 
-  await page.screenshot({ path: path.join(out, '02-sikka-scenario-b.png'), fullPage: false });
+  await page.screenshot({ path: path.join(out, '02-sikka-spatial-analysis.png'), fullPage: false });
+
+  // Switch back to Penginderaan Jauh
+  await tabs.nth(0).click();
+  await page.waitForTimeout(300);
+  assert.ok(await imgA.isVisible(), 'Image should be visible again after switching back');
 
   console.log('--- TEST 3: Lightbox Modal & Escape Key ---');
   // Click Zoom button
@@ -81,6 +115,12 @@ fs.mkdirSync(out, { recursive: true });
 
   const lightbox = page.locator('.geoai-lightbox-overlay');
   assert.ok(await lightbox.isVisible(), 'Lightbox modal should be visible');
+
+  // Check lightbox title - no "Skenario A/B"
+  const lightboxTitle = await page.locator('.lightbox-titles strong').innerText();
+  console.log('Lightbox title:', lightboxTitle);
+  assert.ok(!lightboxTitle.toLowerCase().includes('skenario a'), 'Lightbox title should not contain Skenario A');
+
   await page.screenshot({ path: path.join(out, '03-lightbox-open.png'), fullPage: false });
 
   // Press Escape to close
@@ -109,33 +149,29 @@ fs.mkdirSync(out, { recursive: true });
 
   await page.screenshot({ path: path.join(out, '05-manggarai-evidence.png'), fullPage: false });
 
-  console.log('--- TEST 6: Episode Without GeoAI (192730424P000116) Truthful Missing State ---');
+  console.log('--- TEST 6: Category Scoping & High Reassigned Episode (192730424P000116) ---');
+  // High episode 192730424P000116: hasGeoAI is false on master, but gets reassigned single primary evidence
   await page.goto(`${base}/episode/192730424P000116`);
   await page.waitForSelector('#geoai-evidence');
 
-  const missingCard = page.locator('.geoai-missing-card');
-  assert.ok(await missingCard.isVisible(), 'Missing state card must be rendered');
+  const watumanuImg = await page.locator('.evidence-main-img').getAttribute('src');
+  console.log('Reassigned high episode image src:', watumanuImg);
+  assert.ok(watumanuImg && watumanuImg.includes('/api/geoai/evidence/'), 'Reassigned high episode must have an image');
+  await page.screenshot({ path: path.join(out, '06-high-reassigned-evidence.png'), fullPage: false });
 
-  const missingText = await missingCard.innerText();
-  console.log('Missing state text:', missingText.replace(/\n/g, ' '));
-  assert.ok(missingText.includes('Belum Tersedia') || missingText.includes('belum memiliki berkas'), 'Truthful missing explanation required');
+  // Low episode 192730824P000048 (RENDAH_SIM): NO gallery section
+  await page.goto(`${base}/episode/192730824P000048`);
+  await page.waitForSelector('.investigation-main');
+  const lowEvidence = await page.locator('#geoai-evidence').count();
+  assert.equal(lowEvidence, 0, 'RENDAH_SIM episode must NOT display #geoai-evidence section');
 
-  // Verify NO v4 image from other episodes is displayed
-  const anyImg = await page.locator('#geoai-evidence img').count();
-  assert.equal(anyImg, 0, 'No image should be borrowed or shown for episode without GeoAI');
+  // Medium episode 857570824P000041 (SEDANG_SIM): NO gallery section
+  await page.goto(`${base}/episode/857570824P000041`);
+  await page.waitForSelector('.investigation-main');
+  const medEvidence = await page.locator('#geoai-evidence').count();
+  assert.equal(medEvidence, 0, 'SEDANG_SIM episode must NOT display #geoai-evidence section');
 
-  await page.screenshot({ path: path.join(out, '06-missing-geoai-card.png'), fullPage: false });
-
-  console.log('--- TEST 7: Legacy URL ?tab=evidence Normalization ---');
-  await page.goto(`${base}/episode/290411124Y000018?tab=evidence`);
-  await page.waitForTimeout(600);
-
-  // Check current URL - ?tab=evidence should be removed or normalized
-  const currentUrl = page.url();
-  console.log('Normalized URL:', currentUrl);
-  assert.ok(!currentUrl.includes('tab=evidence'), 'URL should have tab=evidence removed');
-
-  console.log('--- TEST 8: Mobile 390px Viewport ---');
+  console.log('--- TEST 7: Mobile 390px Viewport ---');
   const mobileContext = await browser.newContext({
     viewport: { width: 390, height: 844 },
     reducedMotion: 'reduce'

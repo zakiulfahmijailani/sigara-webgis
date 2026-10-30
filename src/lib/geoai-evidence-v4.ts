@@ -70,6 +70,14 @@ export type ShowcaseEvidenceAssignment = {
   items: GeneratedEpisodeEvidence[];
 };
 
+export type PrimaryEvidenceAssignment = {
+  episodeId: string;
+  sourceEpisodeId: string;
+  isReassigned: boolean;
+  version: typeof SHOWCASE_ASSIGNMENT_VERSION;
+  primaryEvidence: GeneratedEpisodeEvidence;
+};
+
 /** Assign an existing A/B illustration pair to high-risk episodes only.
  * Source metadata stays intact: this is a showcase pairing, not an observation.
  * A seeded hash keeps the random choice stable across reloads and SSR/hydration.
@@ -95,6 +103,30 @@ export function getShowcaseEvidenceForEpisode(
     items: getEvidenceForEpisode(sourceEpisodeId).slice().sort((a, b) => a.scenario.localeCompare(b.scenario)),
   };
 }
+
+/**
+ * Get exactly one primary GeoAI illustration for high-risk episodes.
+ * Uses the stable assignment pairing and selects scenario A as primary.
+ * Non-high episodes return null.
+ */
+export function getPrimaryEvidenceForEpisode(
+  episode: Pick<Episode, 'id' | 'cat'>
+): PrimaryEvidenceAssignment | null {
+  const assignment = getShowcaseEvidenceForEpisode(episode);
+  if (!assignment || !assignment.items.length) return null;
+
+  const primaryEvidence = assignment.items.find((item) => item.scenario === 'A') || assignment.items[0];
+
+  return {
+    episodeId: assignment.episodeId,
+    sourceEpisodeId: assignment.sourceEpisodeId,
+    isReassigned: assignment.isReassigned,
+    version: assignment.version,
+    primaryEvidence,
+  };
+}
+
+
 
 /**
  * Get specific scenario (A or B) for a given episode ID
@@ -129,7 +161,7 @@ export function getEpisodeGeoAIStatus(
       return {
         status: 'insufficient',
         badgeLabel: 'Bukti Belum Cukup',
-        title: 'Skenario Ilustrasi: Bukti Belum Cukup untuk Menilai Akses',
+        title: 'Bukti Belum Cukup untuk Menilai Akses',
         description: 'Gambar contoh memodelkan observasi yang tidak memadai; bukan hasil pengamatan aktual episode ini.',
         isAvailable: true,
       };
@@ -138,15 +170,15 @@ export function getEpisodeGeoAIStatus(
       return {
         status: 'completed',
         badgeLabel: 'Kondisi Stabil',
-        title: 'Skenario Ilustrasi: Tanpa Perubahan Signifikan',
+        title: 'Kondisi Stabil: Tanpa Perubahan Signifikan',
         description: 'Gambar contoh memodelkan kondisi stabil; bukan konfirmasi akses aktual episode ini.',
         isAvailable: true,
       };
     }
     return {
       status: 'completed',
-      badgeLabel: 'Ilustrasi Skenario Tersedia',
-      title: `Analisis Spasial: Skenario ${activeEvidence.scenario} (${activeEvidence.title})`,
+      badgeLabel: 'Ilustrasi Tersedia',
+      title: `Analisis Penginderaan Jauh: ${activeEvidence.title}`,
       description: activeEvidence.scenarioLabel,
       isAvailable: true,
     };

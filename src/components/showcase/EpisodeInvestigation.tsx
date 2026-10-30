@@ -547,7 +547,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                           </strong>
                           <p>
                             {hasIllustrativeEvidence
-                              ? 'Dua skenario gambar v4 tersedia di bawah diagram aliran data. Ilustrasi dipasangkan untuk demonstrasi episode tinggi; bukan pengukuran baru dan tidak mengubah skor master.'
+                              ? 'Ilustrasi analisis tersedia di bawah diagram aliran data. Ilustrasi dipasangkan untuk demonstrasi episode tinggi; bukan pengukuran baru dan tidak mengubah skor master.'
                               : 'Galeri ilustrasi v4 difokuskan pada episode indikasi tinggi. Episode sedang dan rendah tidak menampilkan gambar demonstrasi.'}
                           </p>
                           {hasIllustrativeEvidence && (
@@ -662,7 +662,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
                     <p>
                       Overlay raster bencana (banjir/MNDWI, longsor/dNDVI, kebakaran/dNBR) disimulasikan
                       secara sintetis untuk tujuan percontohan evaluasi GeoAI (Proof of Concept).
-                      Skenario A dan B adalah dua kemungkinan hipotesis analisis, bukan observasi historis ganda.
+                      Ilustrasi analisis merupakan model percontohan, bukan observasi historis ganda.
                     </p>
                   </div>
 
