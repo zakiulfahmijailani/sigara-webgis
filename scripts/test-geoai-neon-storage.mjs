@@ -14,7 +14,9 @@ for (const asset of manifest.assets) {
   assert.equal(response.headers.get('Content-Type'), asset.contentType);
   assert.equal(Number(response.headers.get('Content-Length')), asset.bytes);
   assert.equal(response.headers.get('ETag'), `"${asset.sha256}"`);
-  assert.match(response.headers.get('Cache-Control') || '', /s-maxage=31536000/);
+  // Vercel consumes s-maxage at its CDN and strips it from browser-facing headers.
+  assert.match(response.headers.get('Cache-Control') || '', /max-age=86400/);
+  assert.match(response.headers.get('Cache-Control') || '', /immutable/);
   records.push({ fileName: asset.fileName, bytes: asset.bytes, headStatus: response.status });
 }
 const sample = manifest.assets[0];
