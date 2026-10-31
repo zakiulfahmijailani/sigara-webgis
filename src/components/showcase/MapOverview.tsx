@@ -95,10 +95,6 @@ export default function MapOverview() {
     <AgentActivityBar episodes={data?.episodes} onSelectEpisode={(id) => setSelectedEpisodeId(id)} />
     <AppHeader onOpenAbout={() => setAbout(v => !v)} />
     <main className="overview-main">
-      <section className="overview-heading">
-        <div><h1>Peta rujukan Nusa Tenggara Timur</h1><p>Pilih titik atau episode untuk menelaah indikasi dan buktinya.</p></div>
-        <div className="overview-scope"><span className="overview-sim-dot" />Data simulasi · 2024{data && <small>{formatNumber(data.episodes.length)} episode rujukan</small>}</div>
-      </section>
       {about && <section className="overview-notice" aria-label="Tentang penelaahan"><Info size={19} /><p>SIGARA membantu petugas menelaah rujukan. Kategori adalah indikasi simulasi pada episode; penetapan dan tindak lanjut tetap oleh petugas. Ilustrasi GeoAI menggunakan skenario sintetis. Rincian metode dan sumber tersedia pada setiap halaman episode.</p><button onClick={() => setAbout(false)} aria-label="Tutup informasi"><X size={18} /></button></section>}
       <section className="overview-toolbar" aria-label="Filter peta dan episode">
         <div className="overview-search-row">
