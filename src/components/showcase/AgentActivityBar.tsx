@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import {
-  Sparkles,
   CheckCircle2,
   AlertTriangle,
   FileText,
@@ -62,23 +61,10 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
               <div className="flex items-center gap-2">
                 <BrandLogo size={22} priority decorative className="agent-mini-logo" />
                 <span className="agent-name">SIGARA Agent</span>
-                <span className="agent-separator">·</span>
-                <span className="agent-status-tag active">
-                  <span className="status-dot active" />
-                  Siap demo
-                </span>
-                <span className="agent-poc-pill">
-                  <Sparkles size={11} />
-                  Simulasi POC · Tidak ada pengiriman nyata
-                </span>
               </div>
             </div>
 
             <div className="agent-context-col">
-              <span className="agent-context-item">
-                Aktivitas demo: <strong>{state.lastRunTimestamp || 'Belum dijalankan'}</strong>
-              </span>
-              <span className="agent-context-sep">·</span>
               <span className="agent-context-item">
                 Waktu maju melalui kontrol demo
               </span>
