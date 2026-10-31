@@ -982,7 +982,7 @@
       },
       "facilityNames": {
         "asal": "Puskesmas Wolorea",
-        "tujuan": "RS Harapan Ende 032 (Simulasi)"
+        "tujuan": "RS Harapan Ende 032"
       },
       "pointsWgs84": {
         "asal": [
@@ -1029,7 +1029,7 @@
       },
       "facilityNames": {
         "asal": "Lembaga Rumah Bersalin Kasih Bunda",
-        "tujuan": "RS Harapan Timor Tengah Selatan 006 (Simulasi)"
+        "tujuan": "RS Harapan Timor Tengah Selatan 006"
       },
       "pointsWgs84": {
         "asal": [
@@ -1076,7 +1076,7 @@
       },
       "facilityNames": {
         "asal": "Puskesmas Naibonat",
-        "tujuan": "RS Harapan Kupang 045 (Simulasi)"
+        "tujuan": "RS Harapan Kupang 045"
       },
       "pointsWgs84": {
         "asal": [
@@ -1123,7 +1123,7 @@
       },
       "facilityNames": {
         "asal": "POS POSIANDU DSN MBR",
-        "tujuan": "RS Harapan Manggarai 034 (Simulasi)"
+        "tujuan": "RS Harapan Manggarai 034"
       },
       "pointsWgs84": {
         "asal": [
@@ -1169,8 +1169,8 @@
         "alternatif": "REF-35601ea7e1f778"
       },
       "facilityNames": {
-        "asal": "Puskesmas Sejahtera Ende 001 (Simulasi)",
-        "tujuan": "RS Harapan Ende 018 (Simulasi)"
+        "asal": "Puskesmas Sejahtera Ende 001",
+        "tujuan": "RS Harapan Ende 018"
       },
       "pointsWgs84": {
         "asal": [
@@ -1217,7 +1217,7 @@
       },
       "facilityNames": {
         "asal": "Klinik Pratam Aveno Borong",
-        "tujuan": "RS Harapan Manggarai Timur 020 (Simulasi)"
+        "tujuan": "RS Harapan Manggarai Timur 020"
       },
       "pointsWgs84": {
         "asal": [
@@ -1264,7 +1264,7 @@
       },
       "facilityNames": {
         "asal": "Puskesmas Rafae",
-        "tujuan": "RS Harapan Belu 020 (Simulasi)"
+        "tujuan": "RS Harapan Belu 020"
       },
       "pointsWgs84": {
         "asal": [
@@ -1311,7 +1311,7 @@
       },
       "facilityNames": {
         "asal": "Puskesmas Lewolaga",
-        "tujuan": "RS Harapan Flores Timur 017 (Simulasi)"
+        "tujuan": "RS Harapan Flores Timur 017"
       },
       "pointsWgs84": {
         "asal": [

@@ -9,8 +9,11 @@ const names = new Map(facilities.features.map(f => [f.properties.id, f.propertie
 const complete = (name: string | null) => name?.trim() && !/tanpa nama|belum tersedia|^REF-|^(Klinik|Puskesmas|Rumah Sakit|RS)$/i.test(name);
 
 test('every map facility has a complete name, including the reported destination', () => {
-  for (const name of names.values()) assert.ok(complete(name), name);
-  assert.match(names.get('REF-1f0698cfd40449')!, /^RS Harapan Manggarai Barat .*\(Simulasi\)$/);
+  for (const name of names.values()) {
+    assert.ok(complete(name), name);
+    assert.doesNotMatch(name, /\(Simulasi\)/i);
+  }
+  assert.equal(names.get('REF-1f0698cfd40449'), 'RS Harapan Manggarai Barat 005');
 });
 
 test('all episode, visit and GeoAI names match their facility IDs', () => {

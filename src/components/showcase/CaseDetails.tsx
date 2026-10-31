@@ -52,7 +52,7 @@ export default function CaseDetails({
   useEffect(() => {
     if (!ep) return;
     setLoadingVisits(true);
-    fetch(`/api/showcase/visits?episodeId=${ep.id}&names=20261031`)
+    fetch(`/api/showcase/visits?episodeId=${ep.id}&names=20261031-v2`)
       .then((r) => r.json())
       .then((res) => {
         setVisits(res.visits || []);

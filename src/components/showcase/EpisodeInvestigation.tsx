@@ -174,7 +174,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
     if (activeTab === 'visits' && visits === null && episode) {
       setLoadingVisits(true);
       setVisitsError(false);
-      fetch(`/api/showcase/visits?episodeId=${encodeURIComponent(episode.id)}&names=20261031`)
+      fetch(`/api/showcase/visits?episodeId=${encodeURIComponent(episode.id)}&names=20261031-v2`)
         .then((r) => {
           if (!r.ok) throw new Error();
           return r.json();

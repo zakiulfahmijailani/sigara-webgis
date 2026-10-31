@@ -2,6 +2,8 @@
 
 ## Pelengkapan nama faskes — 31 Oktober 2026
 
+Pembaruan tampilan: migrasi `004-ntt-facility-display-names.sql` menghapus akhiran `(Simulasi)` dari nama sajian pada katalog, episode, kunjungan, GeoAI, dan snapshot. Provenans penamaan tetap disimpan dalam metadata. Runner perbaikan menjalankan migrasi 003 lalu 004 secara atomik; revisi cache terbaru adalah `names=20261031-v2`.
+
 Migrasi `003-ntt-facility-names.sql` melengkapi 666 nama kosong/placeholder/generik dari 879 fasilitas. Nama yang sudah lengkap dipertahankan. Nama tambahan bertanda `(Simulasi)`, ditetapkan per ID faskes menggunakan jenis fasilitas, wilayah, dan nomor stabil. Properti `namaSumber` menyimpan label sumber dan `nameSource: assigned_simulation` menandai penamaan tambahan; nama ini bukan klaim identitas fasilitas nyata terverifikasi.
 
 Nama pada episode asal/tujuan/alternatif, seluruh kunjungan, konteks GeoAI, dan snapshot API disamakan dengan katalog berdasarkan ID. Dua alternatif luar NTT yang sebelumnya hanya berisi kode diberi nama simulasi lintas wilayah. Master mentah dan salinan Parquet sumber tetap utuh. Perbaikan diuji di cabang `sigara-facility-names-20261031`, kemudian diterapkan dalam satu transaksi di produksi, dengan pemeriksaan kelengkapan dan konsistensi nama.
