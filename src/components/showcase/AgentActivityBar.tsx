@@ -63,12 +63,6 @@ export default function AgentActivityBar({ episodes = [], onSelectEpisode }: Pro
                 <span className="agent-name">SIGARA Agent</span>
               </div>
             </div>
-
-            <div className="agent-context-col">
-              <span className="agent-context-item">
-                Waktu maju melalui kontrol demo
-              </span>
-            </div>
           </div>
 
           {/* Row 2: 4 Metric Cards + Action Button */}
