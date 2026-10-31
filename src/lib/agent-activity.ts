@@ -2,6 +2,7 @@ import { readDemoStorage, writeDemoStorage } from './demo-storage';
 import type { Episode } from './showcase';
 import { getPrimaryEvidenceForEpisode } from './geoai-evidence-v4';
 import type { ClarificationCase } from './clarification-demo-types';
+import type { OfficerReview, OfficerReviewDraft } from './officer-review';
 
 export type InitialCategory = 'high' | 'medium' | 'low' | 'unknown';
 export type GeoAIEligibility = 'eligible' | 'skipped' | 'unknown';
@@ -55,6 +56,7 @@ export type AgentReport = {
   isSimulation: boolean;
   clarification?: ClarificationCase;
   revision?: number;
+  officerReview?: OfficerReview;
 };
 
 export type AgentActivityLog = {
@@ -100,6 +102,7 @@ export type AgentActivityState = {
   reports: Record<string, AgentReport>;
   logs: AgentActivityLog[];
   notifications: AgentNotification[];
+  officerDrafts?: Record<string, OfficerReviewDraft>;
 };
 
 export const INITIAL_MODEL_VERSION = 'v1.0-master-proximity';

@@ -58,6 +58,7 @@ import CaseDetails from './CaseDetails';
 import { investigationBackHref } from '@/lib/map-overview';
 import SigaraIndexCard from './index/SigaraIndexCard';
 import ClarificationPanel from './ClarificationPanel';
+import OfficerReviewPanel from './OfficerReviewPanel';
 import InlineGeoAIEvidence from './index/InlineGeoAIEvidence';
 import PillarBreakdown from './index/PillarBreakdown';
 import IndexDataFlow from './index/IndexDataFlow';
@@ -308,6 +309,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
           </div>
 
           <div className="inv-title-right">
+            <a href="#keputusan-petugas" className="officer-review-link">Keputusan petugas &amp; laporan akhir</a>
             <div className="inv-id-box">
               <span className="inv-id-label">ID Episode:</span>
               <code className="inv-id-code">{episode.id}</code>
@@ -817,6 +819,7 @@ export default function EpisodeInvestigation({ data, episodeId }: Props) {
           mode={indexMode}
         />
         <ClarificationPanel key={episode.id} episode={episode} />
+        <OfficerReviewPanel key={`review-${episode.id}`} episode={episode} />
       </main>
 
       {aboutOpen && (

@@ -5846,6 +5846,63 @@
 }
 
 /* Episode Page Actions & Tag */
+.officer-review {
+  margin: 0 0 40px; padding: 28px; background: #fff; border: 1px solid #d6e2dc;
+  border-radius: 20px; color: #173e35; scroll-margin-top: 28px;
+}
+.officer-review-heading { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
+.officer-eyebrow { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: .1em; color: #427764; }
+.officer-review h2 { font-size: 26px; font-weight: 750; margin: 8px 0; }
+.officer-review-heading p, .officer-storage-note { color: #62776e; font-size: 13px; line-height: 1.6; }
+.officer-status { border-radius: 20px; background: #edf5ef; padding: 7px 12px; font-size: 12px; white-space: nowrap; }
+.officer-steps { display: flex; flex-wrap: wrap; gap: 12px 24px; list-style: none; padding: 18px 0; margin: 16px 0 0; font-size: 13px; color: #6b7e76; border-top: 1px solid #e4ebe6; }
+.officer-steps [aria-current] { color: #126347; font-weight: 700; }
+.officer-episode { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; background: #f3f7f4; border-radius: 10px; padding: 14px; margin-bottom: 22px; overflow-wrap: anywhere; }
+.officer-episode span { font-size: 12px; color: #62776e; }
+.officer-choices, .officer-reasons { border: 0; padding: 0; margin: 0 0 22px; min-width: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.officer-review legend { font-size: 15px; font-weight: 650; margin-bottom: 12px; }
+.officer-review legend small { font-weight: 400; color: #62776e; }
+.officer-choice { display: flex; gap: 12px; align-items: flex-start; border: 1px solid #d5e0da; border-radius: 12px; padding: 16px; cursor: pointer; }
+.officer-choice.selected { border-color: #177052; background: #edf7f0; box-shadow: 0 0 0 1px #177052; }
+.officer-choice strong { display: block; font-size: 14px; margin-bottom: 5px; }
+.officer-choice small { display: block; color: #62776e; line-height: 1.5; font-size: 12px; }
+.officer-review input[type=radio], .officer-review input[type=checkbox] { accent-color: #17694f; width: 17px; height: 17px; flex-shrink: 0; margin-top: 2px; }
+.officer-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 22px; }
+.officer-fields label, .officer-field { display: flex; flex-direction: column; gap: 8px; font-size: 13px; font-weight: 600; }
+.officer-field { margin-bottom: 18px; }
+.officer-review input:not([type=checkbox]):not([type=radio]), .officer-review textarea { width: 100%; min-width: 0; border: 1px solid #cbd9d1; background: #fff; color: #173e35; border-radius: 8px; padding: 11px 12px; font: inherit; font-weight: 400; line-height: 1.6; }
+.officer-review textarea { resize: vertical; }
+.officer-review :focus-visible { outline: 3px solid #79b9a0; outline-offset: 3px; }
+.officer-reasons label, .officer-attestation { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.6; }
+.officer-attestation { padding: 16px; background: #f3f7f4; border-radius: 10px; margin: 8px 0 20px; }
+.officer-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+.officer-actions button, .officer-history button { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #bdcec3; padding: 11px 16px; border-radius: 9px; background: #fff; color: #245b45; font-size: 13px; font-weight: 600; cursor: pointer; }
+.officer-actions .officer-primary { background: #175b43; color: #fff; border-color: #175b43; }
+.officer-actions button:hover { filter: brightness(.95); }
+.officer-storage-note { margin-top: 14px; font-size: 12px; }
+.officer-preview, .officer-result { padding: 20px; background: #f0f7f1; border: 1px solid #ccdfd1; border-radius: 12px; overflow-wrap: anywhere; }
+.officer-preview h3, .officer-result h3 { font-size: 18px; font-weight: 700; }
+.officer-preview p, .officer-result p { margin-top: 10px; white-space: pre-wrap; line-height: 1.7; }
+.officer-result { display: flex; gap: 14px; }
+.officer-result > svg { flex-shrink: 0; margin-top: 3px; }
+.officer-result small { display: block; margin-top: 16px; color: #62776e; }
+.officer-feedback { padding: 12px; background: #e7f5ea; margin: 12px 0; }
+.officer-error { padding: 12px; background: #fff0ed; color: #9d3021; margin: 12px 0; }
+.officer-history { margin-top: 18px; font-size: 13px; }
+.officer-history summary { cursor: pointer; }
+.officer-history button { display: block; margin-top: 10px; text-align: left; }
+.officer-review-link { display: block; font-size: 13px; margin-top: 10px; color: #176347; text-decoration: underline; }
+.doc-officer-review h3 { font-size: 13px; font-weight: 700; margin-top: 18px; break-after: avoid; }
+.doc-officer-review .doc-data-card { display: flex; flex-direction: column; gap: 6px; }
+.doc-officer-review p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; margin: 6px 0 14px; orphans: 3; widows: 3; }
+.doc-review-approval { border-top: 1px solid #d6e2dc; padding-top: 14px; break-inside: avoid; }
+@media (max-width: 640px) {
+  .officer-review { padding: 18px; border-radius: 14px; }
+  .officer-review-heading { flex-direction: column; gap: 10px; }
+  .officer-choices, .officer-fields, .officer-reasons { grid-template-columns: minmax(0, 1fr); }
+  .officer-actions button { justify-content: center; flex: 1 1 100%; }
+}
+
 .btn-create-report {
   display: inline-flex;
   align-items: center;

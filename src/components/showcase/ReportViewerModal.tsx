@@ -6,6 +6,7 @@ import { useDemoDialog } from './useDemoDialog';
 import { formatSimDateTime } from '@/lib/clarification-demo';
 import BrandLogo from './BrandLogo';
 import type { AgentReport } from '@/lib/agent-activity';
+import { REVIEW_OPTIONS } from '@/lib/officer-review';
 
 type Props = {
   report: AgentReport;
@@ -17,6 +18,7 @@ export default function ReportViewerModal({ report, onClose }: Props) {
   const [printing, setPrinting] = useState(false);
   const dialogRef = useDemoDialog(mounted, onClose);
   const contentRef = useRef<HTMLDivElement>(null);
+  const review = report.officerReview;
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -51,7 +53,7 @@ export default function ReportViewerModal({ report, onClose }: Props) {
           <div className="toolbar-left">
             <FileText size={18} className="text-emerald-400" />
             <span className="toolbar-title">{report.title}</span>
-            <span className="toolbar-badge">Simulasi POC</span>
+            <span className="toolbar-badge">{review ? review.status === 'final' ? 'Laporan akhir' : 'Telaah lanjutan' : 'Belum disahkan petugas'}</span>
           </div>
           <div className="toolbar-actions">
             <button
@@ -85,7 +87,7 @@ export default function ReportViewerModal({ report, onClose }: Props) {
               <BrandLogo size={48} priority decorative />
               <div>
                 <h1 id="report-modal-title" className="doc-app-name">SIGARA</h1>
-                <p className="doc-app-sub">Sistem Informasi Geospasial Akuntabilitas Rujukan Antar-Fasilitas</p>
+                <p className="doc-app-sub">Sistem Informasi Geografis Agentik untuk Rujukan Akuntabel</p>
                 <p className="doc-prov">Provinsi Nusa Tenggara Timur · Kedeputian Wilayah VIII BPJS Kesehatan</p>
               </div>
             </div>
@@ -107,10 +109,9 @@ export default function ReportViewerModal({ report, onClose }: Props) {
           <div className="doc-simulation-banner">
             <Sparkles size={16} />
             <div>
-              <strong>DOKUMEN PENELAAHAN SISTEM PENDUKUNG KEPUTUSAN (POC)</strong>
+              <strong>{review ? review.status === 'final' ? 'LAPORAN AKHIR PENELAAHAN PETUGAS' : 'LAPORAN TELAAH LANJUTAN' : 'BAHAN PENELAAHAN — MENUNGGU KEPUTUSAN PETUGAS'}</strong>
               <p>
-                Laporan ini disusun secara otomatis oleh SIGARA Agent sebagai bahan pertimbangan telaah rujukan fasilitas kesehatan.
-                Kategori dan skor merupakan indikasi model; bukan penetapan kecurangan (fraud determination).
+                {review ? `Keputusan: ${REVIEW_OPTIONS[review.decision].label}. Disahkan oleh ${review.officerName}, ${review.officerRole}. Revisi ${review.revision}.` : 'Laporan ini merangkum analisis SIGARA sebagai bahan telaah. Keputusan petugas belum ditetapkan.'}
               </p>
             </div>
           </div>
@@ -127,7 +128,7 @@ export default function ReportViewerModal({ report, onClose }: Props) {
                 <span className="data-card-label">SIGARA Index Awal:</span>
                 <strong className="data-card-value text-red">
                   {report.initialIndex != null ? report.initialIndex.toFixed(1) : '-'} / 100
-                  {' '}<span className="text-sm font-normal text-muted">(Indikasi Tinggi)</span>
+                  {' '}<span className="text-sm font-normal text-muted">({({ high: 'Indikasi Tinggi', medium: 'Indikasi Sedang', low: 'Indikasi Rendah', unknown: 'Indikasi Belum Tersedia' })[report.initialCategory]})</span>
                 </strong>
               </div>
             </div>
@@ -201,6 +202,16 @@ export default function ReportViewerModal({ report, onClose }: Props) {
             </ul>
           </div>
 
+          {review && <section className="doc-section doc-officer-review">
+            <h2 className="doc-section-title">4. Keputusan &amp; Pengesahan Petugas</h2>
+            <div className="doc-data-card"><span className="data-card-label">Hasil penelaahan · Revisi {review.revision}</span><strong>{REVIEW_OPTIONS[review.decision].label}</strong><span>{review.status === 'final' ? 'Keputusan akhir' : 'Menunggu tindak lanjut — belum merupakan keputusan akhir'}</span></div>
+            <h3>Dasar pertimbangan</h3><p>{review.reasons.join('; ')}</p>
+            <h3>Bukti / referensi pemeriksaan</h3><p>{review.evidence}</p>
+            <h3>Alasan keputusan</h3><p>{review.notes}</p>
+            <h3>Tindak lanjut</h3><p>{review.followup}</p>
+            <p className="doc-review-approval">Disahkan oleh <strong>{review.officerName}</strong> · {review.officerRole}<br />{new Date(review.approvedAt).toLocaleString('id-ID')} · Episode {report.episodeId}</p>
+          </section>}
+
           {/* Signatures & Footer */}
           <div className="doc-footer">
             <div className="doc-sign-box">
@@ -211,7 +222,7 @@ export default function ReportViewerModal({ report, onClose }: Props) {
             <div className="doc-sign-box">
               <span className="sign-role">Petugas Penelaah Lapangan:</span>
               <div className="sign-line" />
-              <span className="sign-name">( Tanda tangan &amp; Nama Terang Verifikator )</span>
+              <span className="sign-name">{review ? <><strong>{review.officerName}</strong><br />{review.officerRole}</> : '( Tanda tangan & Nama Terang Verifikator )'}</span>
             </div>
           </div>
 

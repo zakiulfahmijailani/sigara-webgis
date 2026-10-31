@@ -30,6 +30,7 @@ import {
   type AgentReport,
 } from '@/lib/agent-activity';
 import ReportViewerModal from '../ReportViewerModal';
+import { latestEpisodeReport } from '@/lib/officer-review';
 import { dateLabel, formatKm, formatMinutes } from '@/lib/showcase';
 
 type Props = {
@@ -60,6 +61,13 @@ export default function InlineGeoAIEvidence({
     setActiveReport(null);
     setAgentState(loadAgentState());
   }, [episode.id]);
+
+  useEffect(() => {
+    const sync = () => setAgentState(loadAgentState());
+    window.addEventListener('sigara-demo-change', sync);
+    window.addEventListener('storage', sync);
+    return () => { window.removeEventListener('sigara-demo-change', sync); window.removeEventListener('storage', sync); };
+  }, []);
 
   // Pair existing illustration with high-risk episodes (deterministic single image)
   const assignment = getPrimaryEvidenceForEpisode(episode);
@@ -152,14 +160,15 @@ export default function InlineGeoAIEvidence({
             type="button"
             className="btn-create-report"
             onClick={() => {
-              const rpt = agentState.reports[episode.id] || createEpisodeReport(episode, reviewedRecord);
+              const rpt = latestEpisodeReport(loadAgentState(), episode.id) || createEpisodeReport(episode, reviewedRecord);
               setActiveReport(rpt);
             }}
             title="Buka atau cetak berkas laporan telaah episode"
           >
             <FileText size={14} />
-            <span>{agentState.reports[episode.id] ? 'Buka Laporan Episode' : 'Buat Laporan Episode'}</span>
+            <span>{latestEpisodeReport(agentState, episode.id) ? 'Buka Laporan Episode' : 'Buat Laporan Episode'}</span>
           </button>
+          <a className="officer-review-link" href="#keputusan-petugas">Tinjau &amp; putuskan hasil</a>
         </div>
       </div>
 

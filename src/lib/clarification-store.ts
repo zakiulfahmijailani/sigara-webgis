@@ -58,7 +58,7 @@ export function getDemoDashboardState(): AgentActivityState {
   })));
   return { ...state, notifications,
     logs: [...state.logs, ...Object.values(cases).flatMap(c => c.events.map(e => ({ id: e.id, timestamp: e.occurredAt, episodeId: c.episodeId, mode: 'simulation' as const, status: 'completed' as const, stepName: e.type, detail: e.detail })))],
-    stats: { ...state.stats, episodesReviewed: reviewed.length, episodesReviewedToday: 0, priorityFindings: 0, criticalNew: 0,
+    stats: { ...state.stats, episodesReviewed: new Set([...reviewed.map(r => r.episodeId), ...reports.filter(r => r.officerReview).map(r => r.episodeId)]).size, episodesReviewedToday: 0, priorityFindings: 0, criticalNew: 0,
       reportsGenerated: new Set(reports.map(r => r.episodeId)).size, reportsToday: 0,
       stakeholdersNotified: metrics.outboundSimulatedCount, notificationsPending: 0 },
   };
