@@ -1,5 +1,6 @@
 'use client';
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Printer, X, Download, ShieldAlert, Sparkles, Building2, MapPin, Calendar, FileText, CheckCircle2 } from 'lucide-react';
 import { useDemoDialog } from './useDemoDialog';
 import { formatSimDateTime } from '@/lib/clarification-demo';
@@ -12,14 +13,29 @@ type Props = {
 };
 
 export default function ReportViewerModal({ report, onClose }: Props) {
-  const dialogRef = useDemoDialog(true, onClose);
+  const [mounted, setMounted] = useState(false);
+  const [printing, setPrinting] = useState(false);
+  const dialogRef = useDemoDialog(mounted, onClose);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handlePrint = () => {
-    window.print();
+  useEffect(() => { setMounted(true); }, []);
+
+  const handlePrint = async () => {
+    setPrinting(true);
+    try {
+      await document.fonts.ready;
+      await Promise.all(Array.from(contentRef.current?.querySelectorAll('img') ?? [])
+        .map(image => image.decode().catch(() => undefined)));
+      if (contentRef.current) window.print();
+    } finally {
+      setPrinting(false);
+    }
   };
 
-  return (
+  if (!mounted) return null;
+
+  // A body-level portal lets print CSS remove the app without clipping the report.
+  return createPortal(
     <div
       className="report-modal-overlay"
       role="dialog"
@@ -42,10 +58,11 @@ export default function ReportViewerModal({ report, onClose }: Props) {
               type="button"
               className="toolbar-btn print-btn"
               onClick={handlePrint}
+              disabled={printing}
               title="Cetak atau Simpan PDF menggunakan dialog cetak browser"
             >
               <Printer size={15} />
-              <span>Cetak / Simpan PDF</span>
+              <span>{printing ? 'Menyiapkan cetak…' : 'Cetak / Simpan PDF'}</span>
             </button>
             <button
               type="button"
@@ -204,6 +221,7 @@ export default function ReportViewerModal({ report, onClose }: Props) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

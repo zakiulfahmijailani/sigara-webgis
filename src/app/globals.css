@@ -5776,28 +5776,72 @@
 
 /* Print Specific Rules */
 @media print {
-  body * {
-    visibility: hidden;
+  @page sigara-report {
+    size: A4;
+    margin: 12mm;
   }
-  .report-modal-overlay, .report-modal-container, #printable-report, #printable-report * {
-    visibility: visible;
+
+  /* Remove the app's layout as well as its pixels, avoiding trailing blank pages. */
+  body:has(#printable-report) {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: white;
+  }
+  body:has(#printable-report) > :not(.report-modal-overlay) {
+    display: none !important;
   }
   .report-modal-overlay {
-    position: absolute;
-    inset: 0;
+    page: sigara-report;
+    position: static;
+    inset: auto;
+    display: block;
+    height: auto;
+    max-height: none;
+    overflow: visible;
     background: transparent;
+    backdrop-filter: none;
     padding: 0;
   }
   .report-modal-container {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    overflow: visible;
     box-shadow: none;
     border-radius: 0;
-    max-width: 100%;
+    max-width: none;
   }
-  .no-print {
+  .report-modal-overlay .no-print {
     display: none !important;
   }
   .report-document {
-    padding: 20px;
+    padding: 0;
+    overflow: visible;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .report-document .doc-section-title {
+    break-after: avoid;
+  }
+  .report-document .doc-header,
+  .report-document .doc-data-card,
+  .report-document .doc-table tr,
+  .report-document .doc-evidence-img-box,
+  .report-document .doc-checklist li,
+  .report-document .doc-footer,
+  .report-document .doc-legal {
+    break-inside: avoid;
+  }
+  .report-document .doc-table thead {
+    display: table-header-group;
+  }
+  .report-document .doc-footer {
+    gap: 12mm;
+  }
+  .report-document .doc-sign-box {
+    width: 45%;
   }
 }
 
