@@ -6,7 +6,7 @@ export function loadShowcase(episodeId?: string): Promise<ShowcaseData> {
   const key = episodeId ?? 'overview';
   const prior = requests.get(key);
   if (prior && Date.now() - prior.at < 300_000) return prior.pending;
-  const params = new URLSearchParams({ compact: '1' });
+  const params = new URLSearchParams({ compact: '1', names: '20261031' });
   if (episodeId !== undefined) params.set('episodeId', episodeId);
   const pending = fetch(`/api/showcase?${params}`).then(async response => {
     if (!response.ok) throw new Error('Data unavailable');

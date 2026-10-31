@@ -1,5 +1,13 @@
 # Penyimpanan aktif SIGARA NTT di Neon
 
+## Pelengkapan nama faskes — 31 Oktober 2026
+
+Migrasi `003-ntt-facility-names.sql` melengkapi 666 nama kosong/placeholder/generik dari 879 fasilitas. Nama yang sudah lengkap dipertahankan. Nama tambahan bertanda `(Simulasi)`, ditetapkan per ID faskes menggunakan jenis fasilitas, wilayah, dan nomor stabil. Properti `namaSumber` menyimpan label sumber dan `nameSource: assigned_simulation` menandai penamaan tambahan; nama ini bukan klaim identitas fasilitas nyata terverifikasi.
+
+Nama pada episode asal/tujuan/alternatif, seluruh kunjungan, konteks GeoAI, dan snapshot API disamakan dengan katalog berdasarkan ID. Dua alternatif luar NTT yang sebelumnya hanya berisi kode diberi nama simulasi lintas wilayah. Master mentah dan salinan Parquet sumber tetap utuh. Perbaikan diuji di cabang `sigara-facility-names-20261031`, kemudian diterapkan dalam satu transaksi di produksi, dengan pemeriksaan kelengkapan dan konsistensi nama.
+
+Jalankan `node --env-file=<env-cabang> scripts/repair-ntt-facility-names.mjs` untuk menerapkan migrasi secara atomik. Setelah produksi tervalidasi, `node --env-file=.env.neon-production scripts/sync-ntt-name-fixtures.mjs` memperbarui fixture sajian. `tests/facility-names.test.ts` memeriksa semua ID pada katalog, episode, kunjungan, dan GeoAI. Revisi cache `names=20261031` pada permintaan aplikasi mencegah penggunaan respons dengan label lama setelah pembaruan aplikasi.
+
 Migrasi 28 Oktober 2026. Proyek `sigara-kupang` (`square-sound-40269045`), database `sigara_kupang`, schema `sigara`. Nama proyek/database lama dipertahankan agar koneksi Vercel yang sudah terpasang tetap bekerja.
 
 ## Data yang dipindahkan

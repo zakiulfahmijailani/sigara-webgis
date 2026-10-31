@@ -76,7 +76,7 @@
         "title": "Using Multi-Spectral Remote Sensing for Flood Mapping: A Case Study in Lake Vembanad, India"
       },
       "candidatePixels": 20676,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": true,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -135,7 +135,7 @@
         "title": "Using Multi-Spectral Remote Sensing for Flood Mapping: A Case Study in Lake Vembanad, India"
       },
       "candidatePixels": 13798,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": false,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -194,7 +194,7 @@
         "title": "Using Multi-Spectral Remote Sensing for Flood Mapping: A Case Study in Lake Vembanad, India"
       },
       "candidatePixels": 2749,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": true,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -253,7 +253,7 @@
         "title": "Using Multi-Spectral Remote Sensing for Flood Mapping: A Case Study in Lake Vembanad, India"
       },
       "candidatePixels": 2169,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": false,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -312,7 +312,7 @@
         "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
       },
       "candidatePixels": 4164,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": true,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -371,7 +371,7 @@
         "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
       },
       "candidatePixels": 4461,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": false,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -430,7 +430,7 @@
         "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
       },
       "candidatePixels": 2836,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": true,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -489,7 +489,7 @@
         "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
       },
       "candidatePixels": 4325,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": false,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -548,7 +548,7 @@
         "title": "Event-Based Integrated Assessment of Environmental Variables and Wildfire Severity through Sentinel-2 Data"
       },
       "candidatePixels": 26660,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": true,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -607,7 +607,7 @@
         "title": "Event-Based Integrated Assessment of Environmental Variables and Wildfire Severity through Sentinel-2 Data"
       },
       "candidatePixels": 24289,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": false,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -666,7 +666,7 @@
         "title": "Event-Based Integrated Assessment of Environmental Variables and Wildfire Severity through Sentinel-2 Data"
       },
       "candidatePixels": 24331,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": true,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -725,7 +725,7 @@
         "title": "Event-Based Integrated Assessment of Environmental Variables and Wildfire Severity through Sentinel-2 Data"
       },
       "candidatePixels": 8371,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": false,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -784,7 +784,7 @@
         "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
       },
       "candidatePixels": 0,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": false,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -902,7 +902,7 @@
         "title": "Semi-automatic mapping of shallow landslides using free Sentinel-2 images and Google Earth Engine"
       },
       "candidatePixels": 0,
-      "validFractionLand": 1.0,
+      "validFractionLand": 1,
       "nearProxyIntersection": false,
       "qualityGapNearProxy": false,
       "noRealDetection": true,
@@ -982,7 +982,7 @@
       },
       "facilityNames": {
         "asal": "Puskesmas Wolorea",
-        "tujuan": "Faskes tanpa nama REF-7e5c40a92852c6"
+        "tujuan": "RS Harapan Ende 032 (Simulasi)"
       },
       "pointsWgs84": {
         "asal": [
@@ -1029,7 +1029,7 @@
       },
       "facilityNames": {
         "asal": "Lembaga Rumah Bersalin Kasih Bunda",
-        "tujuan": "Faskes tanpa nama REF-1323109ef81781"
+        "tujuan": "RS Harapan Timor Tengah Selatan 006 (Simulasi)"
       },
       "pointsWgs84": {
         "asal": [
@@ -1076,7 +1076,7 @@
       },
       "facilityNames": {
         "asal": "Puskesmas Naibonat",
-        "tujuan": "Faskes tanpa nama REF-64ceece5268390"
+        "tujuan": "RS Harapan Kupang 045 (Simulasi)"
       },
       "pointsWgs84": {
         "asal": [
@@ -1123,7 +1123,7 @@
       },
       "facilityNames": {
         "asal": "POS POSIANDU DSN MBR",
-        "tujuan": "Faskes tanpa nama REF-c77656afc6e0ea"
+        "tujuan": "RS Harapan Manggarai 034 (Simulasi)"
       },
       "pointsWgs84": {
         "asal": [
@@ -1169,8 +1169,8 @@
         "alternatif": "REF-35601ea7e1f778"
       },
       "facilityNames": {
-        "asal": "Puskesmas",
-        "tujuan": "Faskes tanpa nama REF-42346e648a777d"
+        "asal": "Puskesmas Sejahtera Ende 001 (Simulasi)",
+        "tujuan": "RS Harapan Ende 018 (Simulasi)"
       },
       "pointsWgs84": {
         "asal": [
@@ -1217,7 +1217,7 @@
       },
       "facilityNames": {
         "asal": "Klinik Pratam Aveno Borong",
-        "tujuan": "Faskes tanpa nama REF-88c8f7f3a01d93"
+        "tujuan": "RS Harapan Manggarai Timur 020 (Simulasi)"
       },
       "pointsWgs84": {
         "asal": [
@@ -1264,7 +1264,7 @@
       },
       "facilityNames": {
         "asal": "Puskesmas Rafae",
-        "tujuan": "Faskes tanpa nama REF-656489271622aa"
+        "tujuan": "RS Harapan Belu 020 (Simulasi)"
       },
       "pointsWgs84": {
         "asal": [
@@ -1311,7 +1311,7 @@
       },
       "facilityNames": {
         "asal": "Puskesmas Lewolaga",
-        "tujuan": "Faskes tanpa nama REF-97f9acd55e8680"
+        "tujuan": "RS Harapan Flores Timur 017 (Simulasi)"
       },
       "pointsWgs84": {
         "asal": [
