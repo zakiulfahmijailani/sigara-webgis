@@ -5,7 +5,6 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { ArrowRight, ChevronLeft, ChevronRight, ListFilter, MapPin, Search, SlidersHorizontal, Layers3, Sparkles, X, Info, HelpCircle } from 'lucide-react';
 import AppHeader from './AppHeader';
-import AgentActivityBar from './AgentActivityBar';
 import { loadShowcase } from '@/lib/load-showcase';
 import { districtLabel, episodeCounts, filterMapEpisodes, investigationHref, readCamera, readMapFilters, type Camera } from '@/lib/map-overview';
 import { categoryFromMaster, dateLabel, formatFacilityName, formatNumber, monthLabel, type Filter, type ShowcaseData } from '@/lib/showcase';
@@ -92,7 +91,6 @@ export default function MapOverview() {
 
   return <div className="map-home">
     <a className="overview-skip" href="#overview-results">Lewati peta, buka daftar episode</a>
-    <AgentActivityBar episodes={data?.episodes} onSelectEpisode={(id) => setSelectedEpisodeId(id)} />
     <AppHeader onOpenAbout={() => setAbout(v => !v)} />
     <main className="overview-main">
       {about && <section className="overview-notice" aria-label="Tentang penelaahan"><Info size={19} /><p>SIGARA membantu petugas menelaah rujukan. Kategori adalah indikasi simulasi pada episode; penetapan dan tindak lanjut tetap oleh petugas. Ilustrasi GeoAI menggunakan skenario sintetis. Rincian metode dan sumber tersedia pada setiap halaman episode.</p><button onClick={() => setAbout(false)} aria-label="Tutup informasi"><X size={18} /></button></section>}
